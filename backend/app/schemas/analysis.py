@@ -31,11 +31,31 @@ class TranscriptionOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class DimensionEvidence(BaseModel):
+    """Por qué la IA puso una nota y en qué segmentos (índices) se apoya."""
+
+    justification: str = ""
+    segments: list[int] = []
+
+
+class CriticalFailure(BaseModel):
+    """Un criterio crítico (auto-fail) incumplido."""
+
+    dimension: str
+    criterion: str
+    segment: int | None = None
+    reason: str = ""
+
+
 class AnalysisOut(BaseModel):
     """Resultado del análisis IA de una llamada."""
 
     global_score: int
     dimension_scores: dict[str, int]
+    dimension_evidence: dict[str, DimensionEvidence] | None = None
+    critical_failures: list[CriticalFailure] | None = None
+    # Nota que habría tenido sin el auto-fail (solo si hay critical_failures).
+    uncapped_score: int | None = None
     recommendations: list[Recommendation] = []
     summary: str | None = None
     ai_provider: str | None = None

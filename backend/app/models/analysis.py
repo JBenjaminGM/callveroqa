@@ -38,6 +38,14 @@ class Analysis(Base):
     dimension_scores: Mapped[dict] = mapped_column(JSONType, nullable=False)
     # recommendations: [{priority, dimension, title, description}]
     recommendations: Mapped[list | None] = mapped_column(JSONType, nullable=True)
+    # dimension_evidence: {greeting: {justification, segments: [i, ...]}, ...}
+    # Por qué la IA puso cada nota y en qué segmentos se apoya. Nulo en análisis
+    # anteriores a la migración 0011.
+    dimension_evidence: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
+    # critical_failures: [{dimension, criterion, segment, reason}]. Si hay alguno,
+    # global_score es 0 y uncapped_score guarda la nota que habría tenido.
+    critical_failures: Mapped[list | None] = mapped_column(JSONType, nullable=True)
+    uncapped_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     ai_provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
     ai_model: Mapped[str | None] = mapped_column(String(100), nullable=True)

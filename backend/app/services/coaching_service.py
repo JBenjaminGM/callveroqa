@@ -18,6 +18,7 @@ from app.models.analysis import Analysis
 from app.models.call import Call
 from app.models.review import Review
 from app.services.dashboard_service import done_analyses
+from app.services.evidence_service import rubric_score
 
 # Cuánto tiene que bajar una llamada respecto a la media del propio asesor para
 # que merezca escucharse. Por debajo de esto es variación normal, no una señal.
@@ -30,9 +31,10 @@ MIN_LLAMADAS_PARA_MEDIA = 3
 # Los motivos, de más a menos urgente. Este orden es el que manda en la lista.
 ORDEN_DE_MOTIVOS = {
     "review_requested": 0,
-    "red_unreviewed": 1,
-    "below_own_average": 2,
-    "never_reviewed_agent": 3,
+    "critical_failed": 1,
+    "red_unreviewed": 2,
+    "below_own_average": 3,
+    "never_reviewed_agent": 4,
 }
 
 
@@ -55,16 +57,18 @@ def who_to_listen(
     """
     Las llamadas que más merecen escucharse ahora, cada una con su motivo.
 
-    Cuatro motivos, en orden de urgencia. Una llamada aparece **una sola vez**,
+    Cinco motivos, en orden de urgencia. Una llamada aparece **una sola vez**,
     con el motivo más fuerte que le aplique: repetir la misma llamada con tres
     razones distintas convertiría la lista en ruido.
 
     1. El asesor pidió revisión y nadie le ha contestado. Es lo único de la
        lista donde hay una persona esperando una respuesta.
-    2. Llamada en banda roja sin escuchar todavía (sin revisión humana).
-    3. Llamada muy por debajo de la media del propio asesor: no es que sea
+    2. Llamada suspendida por un criterio crítico y sin escuchar: un
+       incumplimiento normativo expone al banco, no solo al asesor.
+    3. Llamada en banda roja sin escuchar todavía (sin revisión humana).
+    4. Llamada muy por debajo de la media del propio asesor: no es que sea
        malo, es que ese día pasó algo.
-    4. Asesor del que no se ha escuchado ninguna llamada en el periodo. No es
+    5. Asesor del que no se ha escuchado ninguna llamada en el periodo. No es
        una alarma; es cobertura: nadie sabe cómo está trabajando.
     """
     red_threshold = thresholds["qa_red_call_threshold"]
@@ -86,11 +90,13 @@ def who_to_listen(
         )
     }
 
-    # Media de cada asesor en el periodo, para medir la caída relativa.
+    # Media de cada asesor en el periodo, para medir la caída relativa. Sobre la
+    # nota de rúbrica (sin auto-fail): las suspendidas ya tienen su propio motivo
+    # y sus ceros hundirían la media, escondiendo las demás caídas.
     por_asesor: dict[int, list[int]] = defaultdict(list)
     for call, analysis in rows:
         if call.agent_id is not None:
-            por_asesor[call.agent_id].append(analysis.global_score)
+            por_asesor[call.agent_id].append(rubric_score(analysis))
     medias = {
         agent_id: sum(scores) / len(scores)
         for agent_id, scores in por_asesor.items()
@@ -131,7 +137,26 @@ def who_to_listen(
                 ),
             )
 
-    # --- 2. Banda roja sin escuchar ---
+    # --- 2. Suspendidas por criterio crítico, sin escuchar ---
+    # Un incumplimiento normativo es lo más urgente después de una persona
+    # esperando respuesta: expone al banco, no solo al asesor.
+    for call, analysis in recientes:
+        fallos = analysis.critical_failures or []
+        if fallos and call.id not in revisadas:
+            criterios = ", ".join(f.get("criterion", "") for f in fallos if f.get("criterion"))
+            proponer(
+                call,
+                analysis,
+                reason="critical_failed",
+                priority="high",
+                title="Suspendida por criterio crítico",
+                description=(
+                    f"{_quien(call, nombres)} · {criterios or 'criterio crítico'}. "
+                    "Nadie la ha revisado."
+                ),
+            )
+
+    # --- 3. Banda roja sin escuchar ---
     for call, analysis in recientes:
         if analysis.global_score < red_threshold and call.id not in revisadas:
             proponer(
@@ -146,12 +171,12 @@ def who_to_listen(
                 ),
             )
 
-    # --- 3. Muy por debajo de la media del propio asesor ---
+    # --- 4. Muy por debajo de la media del propio asesor ---
     for call, analysis in recientes:
         media = medias.get(call.agent_id) if call.agent_id is not None else None
         if media is None:
             continue
-        caida = media - analysis.global_score
+        caida = media - rubric_score(analysis)
         if caida >= CAIDA_RELEVANTE:
             proponer(
                 call,
@@ -161,11 +186,11 @@ def who_to_listen(
                 title=f"{round(caida)} puntos por debajo de su media",
                 description=(
                     f"{_quien(call, nombres)} promedia {media:.0f} en el periodo "
-                    f"y esta llamada se quedó en {analysis.global_score}."
+                    f"y esta llamada se quedó en {rubric_score(analysis)}."
                 ),
             )
 
-    # --- 4. Asesores de los que no se ha escuchado nada ---
+    # --- 5. Asesores de los que no se ha escuchado nada ---
     escuchados = {
         call.agent_id
         for call, _ in rows

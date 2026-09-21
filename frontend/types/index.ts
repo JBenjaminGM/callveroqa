@@ -136,9 +136,28 @@ export interface Transcription {
   language?: string | null;
 }
 
+/** Por qué la IA puso una nota y en qué segmentos (índices) se apoya. */
+export interface DimensionEvidence {
+  justification: string;
+  segments: number[];
+}
+
+/** Un criterio crítico (auto-fail) incumplido: suspende la llamada. */
+export interface CriticalFailure {
+  dimension: string;
+  criterion: string;
+  segment?: number | null;
+  reason: string;
+}
+
 export interface Analysis {
   global_score: number;
   dimension_scores: Record<string, number>;
+  /** Nulo en análisis anteriores a que existiera la evidencia. */
+  dimension_evidence?: Record<string, DimensionEvidence> | null;
+  critical_failures?: CriticalFailure[] | null;
+  /** Nota que habría tenido sin el auto-fail (solo si hay fallos críticos). */
+  uncapped_score?: number | null;
   recommendations: Recommendation[];
   summary?: string | null;
   ai_provider?: string | null;
@@ -155,6 +174,10 @@ export interface CallListItem {
   duration_seconds?: number | null;
   status: CallStatus;
   global_score?: number | null;
+  /** Suspendida por un criterio crítico (auto-fail). */
+  critical_failed?: boolean;
+  /** Solo en búsquedas: fragmento de la transcripción que coincide. */
+  match_snippet?: string | null;
   created_at: string;
 }
 
@@ -307,6 +330,7 @@ export interface ListenSuggestion {
   call_date?: string | null;
   reason:
     | 'review_requested'
+    | 'critical_failed'
     | 'red_unreviewed'
     | 'below_own_average'
     | 'never_reviewed_agent'
@@ -450,6 +474,8 @@ export interface AgentDashboard {
 export interface RubricCriterion {
   name: string;
   enabled: boolean;
+  /** Crítico (auto-fail): incumplirlo suspende la llamada entera. */
+  critical?: boolean;
 }
 
 export interface RubricDimension {

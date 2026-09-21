@@ -32,8 +32,8 @@ ahí, no desde la raíz del repositorio.
 | Rama | `claude/callqa-callibrate-redesign-036677` |
 | Último en `origin/main` | `d50afb8` — suelo de calidad (IMPECCABLE) |
 | Sin subir | nada: **las cinco fases y las dos pasadas de diseño están desplegadas** |
-| Tests backend | **127**, todos en verde |
-| Migraciones | 0001–0010, aplicadas en producción |
+| Tests backend | **147**, todos en verde |
+| Migraciones | 0001–0011 (0011 aún sin desplegar: rama `rebrand/callveroqa`) |
 
 **Pregunta antes de hacer `git push`.** Subir a `main` despliega solo: Vercel reconstruye
 el frontend y Render aplica las migraciones y vuelve a sembrar. Verificado el 11 sep:

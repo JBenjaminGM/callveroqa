@@ -335,6 +335,62 @@ def sembrar_acuses(db, rng) -> int:
     return creados
 
 
+def marcar_criterios_criticos(db) -> None:
+    """
+    Deja marcados como críticos los criterios que usa la demo.
+
+    Respeta la decisión del jefe: si un criterio ya tiene la marca `critical`
+    (true o false), es que alguien lo guardó desde Configuración y no se toca.
+    Solo se marca lo que nunca se ha decidido, y se añade lo que falte.
+    """
+    from app.models.settings import RubricConfig
+
+    cambios = 0
+    for clave, nombres in guiones.CRITERIOS_CRITICOS_DEMO.items():
+        fila = db.scalar(select(RubricConfig).where(RubricConfig.dimension_key == clave))
+        if fila is None:
+            continue
+        criterios = [dict(c) for c in (fila.criteria or [])]
+        por_nombre = {c.get("name"): c for c in criterios}
+        for nombre in nombres:
+            criterio = por_nombre.get(nombre)
+            if criterio is None:
+                criterios.append({"name": nombre, "enabled": True, "critical": True})
+                cambios += 1
+            elif "critical" not in criterio:
+                criterio["critical"] = True
+                cambios += 1
+        fila.criteria = criterios  # reasignar para que se detecte el cambio
+    db.commit()
+    if cambios:
+        print(f"[demo] {cambios} criterios de cumplimiento marcados como críticos.")
+
+
+def completar_evidencia(db) -> int:
+    """
+    Añade evidencia y criterios críticos a llamadas de demo sembradas antes de
+    que existieran. Sin duplicar: solo toca las que aún no tienen evidencia.
+    """
+    por_audio = {conv["audio"]: clave for clave, conv in guiones.CONVERSACIONES.items()}
+    completadas = 0
+    for analisis in db.scalars(select(Analysis).where(Analysis.ai_provider == "demo")):
+        if analisis.dimension_evidence:
+            continue
+        nombre = analisis.call.audio_filename or ""
+        clave = next((c for audio, c in por_audio.items() if nombre.endswith(audio)), None)
+        if clave is None:
+            continue
+        analisis.dimension_evidence = guiones.evidencia(clave)
+        criticos = guiones.CRITICOS.get(clave)
+        if criticos and analisis.uncapped_score is None:
+            analisis.critical_failures = criticos
+            analisis.uncapped_score = analisis.global_score
+            analisis.global_score = 0
+        completadas += 1
+    db.commit()
+    return completadas
+
+
 def sembrar() -> None:
     rng = random.Random(20260909)     # semilla fija: siempre el mismo resultado
     db = SessionLocal()
@@ -342,6 +398,7 @@ def sembrar() -> None:
 
     try:
         crear_usuario_demo(db)
+        marcar_criterios_criticos(db)
 
         # Los pesos de la rúbrica se leen de la base: si el jefe los cambió,
         # los scores de la demo siguen siendo coherentes con su configuración.
@@ -362,6 +419,9 @@ def sembrar() -> None:
             acuses = sembrar_acuses(db, rng)
             if acuses:
                 print(f"[demo] {acuses} respuestas de asesores añadidas.")
+            completadas = completar_evidencia(db)
+            if completadas:
+                print(f"[demo] Evidencia y criterios críticos añadidos a {completadas} llamadas.")
             return
 
         admin = db.scalar(select(User).order_by(User.id))
@@ -430,10 +490,15 @@ def sembrar() -> None:
             )
 
             notas = _notas_con_variacion(conv["scores"], rng)
+            criticos = guiones.CRITICOS.get(clave) or None
+            nota = _score_global(notas, pesos)
             db.add(
                 Analysis(
                     call_id=llamada.id,
-                    global_score=_score_global(notas, pesos),
+                    global_score=0 if criticos else nota,
+                    uncapped_score=nota if criticos else None,
+                    critical_failures=criticos,
+                    dimension_evidence=guiones.evidencia(clave),
                     dimension_scores=notas,
                     recommendations=conv["recomendaciones"],
                     summary=conv["resumen"],

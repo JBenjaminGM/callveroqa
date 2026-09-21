@@ -27,6 +27,7 @@ from app.schemas.review import (
     ReviewOut,
 )
 from app.services import review_service
+from app.services.evidence_service import rubric_score
 
 router = APIRouter(tags=["calibration"])
 
@@ -80,9 +81,12 @@ def build_review_out(call: Call, review: Review) -> ReviewOut:
         return data
 
     ia = {k: int(v) for k, v in (analysis.dimension_scores or {}).items()}
-    data.ai_global_score = analysis.global_score
+    # Se compara contra la nota de rúbrica de la IA, sin el auto-fail: la
+    # diferencia debe medir desacuerdo al puntuar, no la regla del crítico.
+    ia_global = rubric_score(analysis)
+    data.ai_global_score = ia_global
     data.ai_dimension_scores = ia
-    data.global_delta = review.global_score - analysis.global_score
+    data.global_delta = review.global_score - ia_global
     data.dimension_deltas = {
         key: int(score) - ia[key]
         for key, score in (review.dimension_scores or {}).items()

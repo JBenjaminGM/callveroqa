@@ -6,6 +6,36 @@ Cambios relevantes. Formato: descripción (commit). Lo más nuevo arriba.
 > [`HISTORIA.md`](HISTORIA.md), movido tal cual: nombra el producto y la identidad
 > visual de entonces porque así era. Es historia, no estado.
 
+## Mejoras frente a la competencia: evidencia, críticos y búsqueda
+
+Nacen de una comparación con Observe.AI, CallMiner, Zendesk QA, Level AI y otras
+([`COMPETENCIA.md`](COMPETENCIA.md)). Las tres son lo mínimo que un comprador de QA con
+IA pide en 2026, y aquí faltaban.
+
+- `Evidencia por nota`: la IA devuelve por dimensión una frase de por qué y de 1 a 3
+  segmentos que la respaldan (`analyses.dimension_evidence`, **migración 0011**). En la
+  ficha, cada nota enseña su porqué y chips de tiempo que **saltan el audio** a ese
+  momento (`TranscriptPlayer.jumpToSegment`). Saneado en `evidence_service.py`: fuera
+  claves inexistentes y segmentos fuera de rango.
+- `Criterios críticos (auto-fail)`: un subcriterio se marca como crítico en
+  Configuración. Si se incumple, nota global 0, con `uncapped_score` (la que habría
+  tenido) y `critical_failures` (qué, por qué, en qué segundo). **Solo cuenta lo que la
+  rúbrica marca como crítico**: si la IA inventa uno, se descarta. Por defecto:
+  «Disclaimers obligatorios» y «Sin afirmaciones prohibidas».
+- `El auto-fail no contamina la calibración`: la revisión humana y el panel de acuerdo
+  comparan contra la nota **sin penalizar** (`rubric_score`). Lo destapó la verificación
+  en la app: una suspendida daba «IA 0 · Humano 72 · diferencia +72», que mide la regla
+  y no el desacuerdo. Mismo criterio para la media del asesor en «a quién escuchar».
+- `A quién escuchar hoy`: motivo nuevo `critical_failed`, justo detrás de las peticiones
+  de revisión del asesor.
+- `Búsqueda en lo que se dijo`: `GET /calls?q=` busca en la transcripción (comodines de
+  LIKE tratados como texto) y devuelve el fragmento; el listado lo resalta. `?critical=true`
+  deja solo las suspendidas, marcadas en la tabla.
+- `Demo`: los seis guiones traen evidencia escrita a mano y dos de las tres llamadas
+  flojas incumplen un crítico (la de préstamos es floja pero no suspende: la demo enseña
+  la diferencia). Las bases ya sembradas se completan sin duplicar.
+- `Tests`: 127 → **147**.
+
 ## Rebrand: CallAIbrate → CallVeroQA
 
 El nombre anterior obligaba a explicar el juego de palabras. **CallVeroQA** = *Call* ·

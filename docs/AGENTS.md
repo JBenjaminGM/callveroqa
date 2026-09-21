@@ -126,12 +126,12 @@ backend/
   alembic/versions/    0001 esquema, 0002 detección ejecutivo, 0003 rubric_config.criteria,
                        0004 campañas, 0005 roles de usuario, 0006 conversation_metrics,
                        0007 server_default de users.role → 'jefe', 0008 usuarios de solo
-                       lectura, 0009 revisiones humanas, 0010 acuses de recibo
+                       lectura, 0009 revisiones humanas, 0010 acuses de recibo, 0011 evidencia y criterios críticos
   scripts/seed_data.py admin + jefe + asesores + rúbrica (subcriterios) + settings (umbrales QA) +
                        3 ejecutivos demo + 3 campañas demo (NO imprime contraseñas)
   scripts/seed_demo.py 67 llamadas en 90 días + 22 revisiones humanas + 6 respuestas de
                        asesores. Sin IA y con semilla fija: siempre da lo mismo y cuesta $0
-  tests/               127 tests (conftest = SQLite en memoria, todo lo externo mockeado)
+  tests/               147 tests (conftest = SQLite en memoria, todo lo externo mockeado)
   Dockerfile           multi-stage. CMD = alembic upgrade + seed + uvicorn (lo usa Render)
   .env / .env.example  (.env está gitignorado)
 frontend/
@@ -192,7 +192,7 @@ analítica global; helper `is_manager`); **asesor** solo ve **su propio rendimie
   (5 servicios: postgres, redis, api, worker, frontend)
   → app http://localhost:3000 · API http://localhost:8000/docs · login `admin@callveroqa.com` con la contraseña que imprime el seed (`docker compose logs api`).
   Apagar: `docker compose down`.
-- **Tests backend (127):** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q`
+- **Tests backend (147):** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q`
   (el venv ya tiene `requirements.txt`; SQLite en memoria, sin red).
 - **Build frontend:** desde `frontend/`, `npm run build`.
 - **Desplegar:** `git push origin main` (Vercel + Render redepliegan solos).
@@ -227,6 +227,7 @@ analítica global; helper `is_manager`); **asesor** solo ve **su propio rendimie
 - **Colores = identidad CallVeroQA:** la fuente de verdad de la **marca** es `docs/BRAND.md`; la **implementación** canónica es `frontend/app/globals.css` + `tailwind.config.ts`. `DESIGN.md` explica cómo se aplica. **Las identidades visuales anteriores están OBSOLETAS** (cuáles fueron, en `docs/HISTORIA.md`): si aparece una de sus paletas, tipografías o clases en el código, es deuda.
 - **Despliegue:** el arranque (migraciones+seed+uvicorn) vive en el **CMD del Dockerfile** (no en `render.yaml`) para evitar que Render parta mal el comando con comillas (daba exit 127).
 - **Cold-start:** ver §3 (keepalive + resiliencia en `lib/api.ts`).
+- **Evidencia y criterios críticos** (`services/evidence_service.py`, migración 0011): todo lo que el LLM devuelve en `dimension_evidence` / `critical_failures` se **sanea contra la rúbrica** — un crítico que la rúbrica no marca como tal se descarta. Con un crítico incumplido, `global_score = 0` y `uncapped_score` guarda la nota real. **Regla:** calibración (revisión humana, panel de acuerdo) y medias de coaching usan `rubric_score(analysis)`, **nunca** `global_score` a pelo; si no, el 0 del auto-fail se lee como desacuerdo. Para filtrar suspendidas usa `uncapped_score IS NOT NULL`: las columnas JSON guardan `None` como `null` JSON, no como NULL de SQL.
 
 ## 11. Diseño = identidad CallVeroQA
 
@@ -261,7 +262,7 @@ admin/jefe (`require_manager`); `[scoped]` = el asesor solo ve lo suyo.
 - **auth:** `login` [rate limit 5/15min], `refresh`, `logout`, `me` (devuelve `role` y `agent_id`).
 - **agents:** `GET` lista [scoped: asesor solo su ficha], `POST` crear [manager], `POST /{id}/login` [manager], `GET /{id}` [scoped], `PUT`/`DELETE` [manager].
 - **campaigns:** `GET`/`POST`/`GET /{id}`/`PUT`/`DELETE` + `POST /extract` (PDF) + `POST /assist` (IA).
-- **calls:** `POST` subir + `POST /batch` [manager], `GET` lista [asesor solo las suyas], `GET /{id}` [scoped], `GET /{id}/status`, `PUT /{id}/assign` [manager], `POST /{id}/retry` [manager], `GET /{id}/report.pdf` [scoped], `DELETE` [manager].
+- **calls:** `POST` subir + `POST /batch` [manager], `GET` lista [asesor solo las suyas; `?q=` busca en la transcripción y devuelve `match_snippet`, `?critical=true` solo suspendidas], `GET /{id}` [scoped], `GET /{id}/status`, `PUT /{id}/assign` [manager], `POST /{id}/retry` [manager], `GET /{id}/report.pdf` [scoped], `DELETE` [manager].
 - **dashboard:** `GET /summary` [manager, +`team_dimension_averages`/`avg_duration_seconds`/`red_call_count`/`conversation_summary`], `GET /campaigns` [manager], `GET /by-campaign` [manager], `GET /alerts` [manager], `GET /top-recommendations` [manager], `GET /agents/{id}` [scoped], `GET /agents/{id}/percentile` [scoped], `GET /agents/{id}/recommendations` [scoped].
 - **config:** `GET`/`PUT /rubric` (PUT [manager]), `GET /settings`, `PUT /settings` [manager, incluye umbrales QA].
 
@@ -286,7 +287,7 @@ activable); `app_settings` (clave-valor: idioma + **umbrales QA `qa_*`**).
 
 ## 14. Tests
 
-127 tests en `backend/tests/` (pytest, SQLite en memoria, externos mockeados). Cubren
+147 tests en `backend/tests/` (pytest, SQLite en memoria, externos mockeados). Cubren
 auth, **roles y scoping (admin/jefe/asesor)**, agentes, **campañas**, cálculo de score,
 enmascarado, matching difuso, **idempotencia del reintento**, **modo inline**, **umbrales
 QA**, **creación del login del asesor**, la **analítica** (métricas de conversación,

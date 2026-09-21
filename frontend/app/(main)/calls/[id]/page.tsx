@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import {
@@ -20,7 +20,14 @@ import {
 import { api, getErrorMessage } from '@/lib/api';
 import { Header } from '@/components/layout/header';
 import { Card, CardTitle } from '@/components/ui/card';
-import { TranscriptPlayer } from '@/components/calls/transcript-player';
+import {
+  TranscriptPlayer,
+  type TranscriptPlayerHandle,
+} from '@/components/calls/transcript-player';
+import {
+  CriticalFailuresCard,
+  EvidenceChips,
+} from '@/components/calls/evidence';
 import { ReviewCard } from '@/components/calibration/review-card';
 import { AcknowledgementCard } from '@/components/coaching/acknowledgement-card';
 import { Button } from '@/components/ui/button';
@@ -52,6 +59,9 @@ export default function CallDetailPage() {
   const retry = useRetryCall();
   const remove = useDeleteCall();
   const [downloading, setDownloading] = useState(false);
+  const playerRef = useRef<TranscriptPlayerHandle>(null);
+  const jumpTo = (index: number) => playerRef.current?.jumpToSegment(index);
+  const transcriptSegments = call?.transcription?.segments ?? [];
 
   const processing =
     call && call.status !== 'DONE' && call.status !== 'ERROR';
@@ -215,6 +225,15 @@ export default function CallDetailPage() {
             {/* Análisis */}
             {call.analysis && (
               <>
+                {!!call.analysis.critical_failures?.length && (
+                  <CriticalFailuresCard
+                    failures={call.analysis.critical_failures}
+                    uncappedScore={call.analysis.uncapped_score}
+                    transcriptSegments={transcriptSegments}
+                    onJump={jumpTo}
+                  />
+                )}
+
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                   <Card className="flex flex-col items-center justify-center gap-3">
                     <span className="destacado text-[11px] text-text-muted">
@@ -240,33 +259,55 @@ export default function CallDetailPage() {
                 </div>
 
                 <Card>
-                  <CardTitle className="mb-4">Scores por dimensión</CardTitle>
-                  <div className="flex flex-col gap-3">
+                  <CardTitle className="mb-1">Scores por dimensión</CardTitle>
+                  <p className="mb-4 text-small text-text-muted">
+                    {call.analysis.dimension_evidence
+                      ? 'Cada nota con su porqué. Pulsa un tiempo para escuchar ese momento.'
+                      : 'Análisis anterior a la evidencia por nota: reprocesa la llamada para obtenerla.'}
+                  </p>
+                  <div className="flex flex-col gap-4">
                     {Object.entries(call.analysis.dimension_scores).map(
-                      ([key, score]) => (
-                        <div key={key}>
-                          <div className="mb-1 flex justify-between text-small">
-                            <span className="text-text-primary">
-                              {dimensionLabel(key)}
-                            </span>
-                            <span
-                              className="font-semibold"
-                              style={{ color: scoreColor(score) }}
-                            >
-                              {score} · {scoreLabel(score)}
-                            </span>
+                      ([key, score]) => {
+                        const evidence = call.analysis?.dimension_evidence?.[key];
+                        return (
+                          <div key={key}>
+                            <div className="mb-1 flex justify-between text-small">
+                              <span className="text-text-primary">
+                                {dimensionLabel(key)}
+                              </span>
+                              <span
+                                className="font-semibold"
+                                style={{ color: scoreColor(score) }}
+                              >
+                                {score} · {scoreLabel(score)}
+                              </span>
+                            </div>
+                            <div className="h-2.5 w-full overflow-hidden rounded-full bg-bg-accent">
+                              <div
+                                className="h-full rounded-full transition-all"
+                                style={{
+                                  width: `${score}%`,
+                                  background: scoreColor(score),
+                                }}
+                              />
+                            </div>
+                            {evidence && (
+                              <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                {evidence.justification && (
+                                  <span className="text-small text-text-secondary">
+                                    {evidence.justification}
+                                  </span>
+                                )}
+                                <EvidenceChips
+                                  segments={evidence.segments}
+                                  transcriptSegments={transcriptSegments}
+                                  onJump={jumpTo}
+                                />
+                              </div>
+                            )}
                           </div>
-                          <div className="h-2.5 w-full overflow-hidden rounded-full bg-bg-accent">
-                            <div
-                              className="h-full rounded-full transition-all"
-                              style={{
-                                width: `${score}%`,
-                                background: scoreColor(score),
-                              }}
-                            />
-                          </div>
-                        </div>
-                      ),
+                        );
+                      },
                     )}
                   </div>
                 </Card>
@@ -325,6 +366,7 @@ export default function CallDetailPage() {
             {/* Transcripción sincronizada con el audio */}
             {call.transcription && (
               <TranscriptPlayer
+                ref={playerRef}
                 callId={call.id}
                 transcription={call.transcription}
                 audioFilename={call.audio_filename}

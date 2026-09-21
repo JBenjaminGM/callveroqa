@@ -1,7 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { Headphones, MessageSquareWarning, TrendingDown, EarOff } from 'lucide-react';
+import {
+  EarOff,
+  Headphones,
+  MessageSquareWarning,
+  OctagonX,
+  TrendingDown,
+} from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/feedback';
 import { useWhoToListen, type DashboardFilters } from '@/lib/queries';
@@ -38,6 +44,7 @@ export function WhoToListen({ filters }: { filters: DashboardFilters }) {
 
 const ICONOS: Record<string, React.ReactNode> = {
   review_requested: <MessageSquareWarning size={16} />,
+  critical_failed: <OctagonX size={16} />,
   red_unreviewed: <Headphones size={16} />,
   below_own_average: <TrendingDown size={16} />,
   never_reviewed_agent: <EarOff size={16} />,

@@ -31,6 +31,22 @@ def build_analysis_prompt(
         rubric_lines.append(line)
     rubric_block = "\n".join(rubric_lines)
 
+    # Criterios críticos (auto-fail): solo los activos y marcados como críticos.
+    critical_lines = [
+        f"- {c['name']} (dimensión: {dim['dimension_key']})"
+        for dim in rubric
+        for c in (dim.get("criteria") or [])
+        if c.get("enabled") and c.get("critical") and c.get("name")
+    ]
+    critical_block = ""
+    if critical_lines:
+        critical_block = (
+            "\n\nCRITERIOS CRÍTICOS (incumplir cualquiera SUSPENDE la llamada entera):\n"
+            + "\n".join(critical_lines)
+            + "\nRepórtalos en \"critical_failures\" SOLO si la transcripción muestra con "
+            "claridad que se incumplieron. Ante la duda, no lo reportes."
+        )
+
     transcript = "\n".join(
         f"[{i}] {seg.get('text', '')}" for i, seg in enumerate(segments)
     )
@@ -58,11 +74,14 @@ TRANSCRIPCIÓN (cada línea es un segmento numerado [i]):
 
 RÚBRICA DE EVALUACIÓN (score 0-100 por dimensión):
 
-{rubric_block}{product_note_block}
+{rubric_block}{critical_block}{product_note_block}
 
 INSTRUCCIONES:
 - Evalúa CADA dimensión de la rúbrica de 0 a 100, teniendo en cuenta ÚNICAMENTE los
   subcriterios listados en ella. Basa cada score en evidencia concreta de la transcripción.
+- EVIDENCIA: para CADA dimensión, en "dimension_evidence" explica en UNA frase por qué
+  pusiste esa nota y cita de 1 a 3 números de segmento [i] que la respaldan (lo que se
+  dijo, o dónde debió decirse y no se dijo). Sin segmentos inventados.
 - ATRIBUCIÓN DE HABLANTE (muy importante): la transcripción NO indica quién habla.
   Para CADA segmento [0..{n - 1}] decide "agent" (EJECUTIVO del banco) o "customer"
   (CLIENTE) SEGÚN EL CONTENIDO, no por el orden. Pistas:
@@ -89,6 +108,12 @@ Responde EXCLUSIVAMENTE con un JSON válido con esta estructura exacta:
   "dimension_scores": {{
 {score_lines}
   }},
+  "dimension_evidence": {{
+    "<dimension_key>": {{"justification": "<una frase>", "segments": [<i>, ...]}}
+  }},
+  "critical_failures": [
+    {{"dimension": "<dimension_key>", "criterion": "<nombre exacto del criterio crítico>", "segment": <i o null>, "reason": "<qué pasó>"}}
+  ],
   "summary": "<resumen ejecutivo de la llamada>",
   "recommendations": [
     {{

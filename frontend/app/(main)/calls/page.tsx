@@ -1,9 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Phone, RefreshCw, Trash2, UploadCloud, X } from 'lucide-react';
+import {
+  OctagonX,
+  Phone,
+  RefreshCw,
+  Search,
+  Trash2,
+  UploadCloud,
+  X,
+} from 'lucide-react';
 import { useAgents, useBulkAssign, useBulkDelete, useCalls } from '@/lib/queries';
 import { getErrorMessage } from '@/lib/api';
 import { Header } from '@/components/layout/header';
@@ -15,14 +23,44 @@ import { ScoreBadge, StatusBadge } from '@/components/ui/badge';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/feedback';
 import { callAgentName, formatDate, formatDuration } from '@/lib/utils';
 
-/** Listado paginado de llamadas con filtros (ejecutivo, estado y fecha). */
+/**
+ * Resalta la primera aparición de `q` dentro del fragmento devuelto por la
+ * búsqueda: es lo que explica por qué salió cada llamada.
+ */
+function Highlight({ text, q }: { text: string; q: string }) {
+  const pos = text.toLowerCase().indexOf(q.toLowerCase());
+  if (!q || pos < 0) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, pos)}
+      <mark className="rounded-[2px] bg-gold-soft px-0.5 text-text-primary">
+        {text.slice(pos, pos + q.length)}
+      </mark>
+      {text.slice(pos + q.length)}
+    </>
+  );
+}
+
+/** Listado paginado de llamadas con filtros (ejecutivo, estado, fecha, texto y críticos). */
 export default function CallsPage() {
   const router = useRouter();
   const [agentId, setAgentId] = useState('');
   const [status, setStatus] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [soloCriticas, setSoloCriticas] = useState(false);
+  const [busqueda, setBusqueda] = useState('');
+  const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
+
+  // La búsqueda espera a que se deje de teclear: una petición por palabra, no por letra.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setQ(busqueda.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [busqueda]);
 
   const { data: agents } = useAgents();
   const { data, isLoading, error, refetch, isFetching } = useCalls({
@@ -30,6 +68,8 @@ export default function CallsPage() {
     status: status || undefined,
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
+    q: q || undefined,
+    critical: soloCriticas || undefined,
     page,
     page_size: 20,
   });
@@ -85,6 +125,30 @@ export default function CallsPage() {
       <main className="flex-1 overflow-y-auto p-6">
         {/* Filtros */}
         <div className="mb-5 flex flex-wrap items-end gap-3">
+          <div className="w-64">
+            <label
+              htmlFor="buscar-llamadas"
+              className="mb-1.5 block text-small text-text-secondary"
+            >
+              Buscar en lo que se dijo
+            </label>
+            <div className="relative">
+              <Search
+                size={16}
+                aria-hidden
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+              />
+              <Input
+                id="buscar-llamadas"
+                type="search"
+                placeholder="p. ej. cancelar, TEA, reclamo"
+                value={busqueda}
+                maxLength={100}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
           <div className="w-48">
             <label className="mb-1.5 block text-small text-text-secondary">
               Ejecutivo
@@ -137,7 +201,16 @@ export default function CallsPage() {
               onChange={(e) => resetPage(setDateTo)(e.target.value)}
             />
           </div>
-          {(dateFrom || dateTo || agentId || status) && (
+          <label className="flex h-10 items-center gap-2 text-small text-text-secondary">
+            <input
+              type="checkbox"
+              checked={soloCriticas}
+              onChange={(e) => resetPage(setSoloCriticas)(e.target.checked)}
+              className="accent-[var(--rust)]"
+            />
+            Solo suspendidas por criterio crítico
+          </label>
+          {(dateFrom || dateTo || agentId || status || busqueda || soloCriticas) && (
             <Button
               variant="ghost"
               size="sm"
@@ -146,6 +219,8 @@ export default function CallsPage() {
                 setStatus('');
                 setDateFrom('');
                 setDateTo('');
+                setBusqueda('');
+                setSoloCriticas(false);
                 setPage(1);
               }}
             >
@@ -188,7 +263,11 @@ export default function CallsPage() {
           <EmptyState
             icon={<Phone size={48} />}
             title="No hay llamadas"
-            description="No se encontraron llamadas con los filtros seleccionados."
+            description={
+              q
+                ? `Ninguna transcripción contiene «${q}».`
+                : 'No se encontraron llamadas con los filtros seleccionados.'
+            }
           />
         )}
 
@@ -292,6 +371,11 @@ export default function CallsPage() {
                           </span>
                         )}
                       </span>
+                      {call.match_snippet && q && (
+                        <span className="mt-1 block max-w-xl text-small text-text-secondary">
+                          <Highlight text={call.match_snippet} q={q} />
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-text-secondary">
                       {formatDate(call.created_at)}
@@ -303,7 +387,16 @@ export default function CallsPage() {
                       <StatusBadge status={call.status} />
                     </td>
                     <td className="px-4 py-3">
-                      {call.global_score != null ? (
+                      {call.critical_failed ? (
+                        <span
+                          className="inline-flex items-center gap-1 rounded-control bg-danger/15
+                                     px-2 py-0.5 text-small font-medium text-danger"
+                          title="Suspendida por un criterio crítico: nota 0"
+                        >
+                          <OctagonX size={14} aria-hidden />
+                          Suspendida
+                        </span>
+                      ) : call.global_score != null ? (
                         <ScoreBadge score={call.global_score} />
                       ) : (
                         <span className="text-text-muted">—</span>

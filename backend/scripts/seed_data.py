@@ -112,10 +112,21 @@ CRITERIA = {
     "greeting": ["Saludo inicial", "Identificación del ejecutivo y banco", "Aviso de grabación", "Despedida y cierre"],
     "assertiveness": ["Empatía", "Claridad al explicar", "Paciencia", "Escucha activa", "Tono profesional"],
     "promotions": ["Menciona productos relevantes", "Explica beneficios", "Condiciones claras y completas"],
-    "compliance": ["Disclaimers obligatorios", "Protección de datos sensibles", "Solicitud de consentimiento"],
+    "compliance": [
+        "Disclaimers obligatorios",
+        "Sin afirmaciones prohibidas",
+        "Protección de datos sensibles",
+        "Solicitud de consentimiento",
+    ],
     "resolution": ["Atiende el motivo de la llamada", "Ofrece solución concreta", "Confirma la resolución"],
     "objections": ["Identifica la objeción", "Responde con argumentos", "Persuasión profesional"],
     "sentiment": ["Satisfacción percibida", "Tono emocional del cliente", "Cierre en positivo"],
+}
+
+# Subcriterios críticos (auto-fail) por defecto: en banca, omitir un disclaimer
+# obligatorio o afirmar algo prohibido suspende la llamada, no le resta puntos.
+CRITICAL_BY_DEFAULT = {
+    "compliance": {"Disclaimers obligatorios", "Sin afirmaciones prohibidas"},
 }
 
 # El proveedor de IA/transcripción lo fija la variable de entorno, no la BD.
@@ -265,7 +276,14 @@ def seed() -> None:
 
         # --- Rúbrica ---
         for key, name, weight, order in RUBRIC:
-            default_criteria = [{"name": c, "enabled": True} for c in CRITERIA.get(key, [])]
+            default_criteria = [
+                {
+                    "name": c,
+                    "enabled": True,
+                    "critical": c in CRITICAL_BY_DEFAULT.get(key, set()),
+                }
+                for c in CRITERIA.get(key, [])
+            ]
             existing = db.scalar(
                 select(RubricConfig).where(RubricConfig.dimension_key == key)
             )

@@ -20,6 +20,7 @@ from app.models.analysis import Analysis
 from app.models.call import Call, CallStatus
 from app.models.review import Review
 from app.models.settings import RubricConfig
+from app.services.evidence_service import rubric_score
 
 # Diferencia (en puntos) por debajo de la cual se considera que IA y humano
 # están de acuerdo. ±5 sobre 100 es la tolerancia habitual en las sesiones de
@@ -122,7 +123,8 @@ def agreement_report(
     global_pairs: list[tuple[int, int]] = []
 
     for review, analysis, _call in filas:
-        global_pairs.append((int(review.global_score), int(analysis.global_score)))
+        # Contra la nota de rúbrica de la IA (sin auto-fail): ver rubric_score.
+        global_pairs.append((int(review.global_score), rubric_score(analysis)))
         humanos = review.dimension_scores or {}
         ia = analysis.dimension_scores or {}
         for key, human_score in humanos.items():

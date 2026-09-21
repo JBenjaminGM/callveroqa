@@ -80,7 +80,7 @@ dimensión + score global ponderado + recomendaciones accionables + **reporte PD
 
 ## 🛠️ Desarrollo y despliegue
 
-- **Tests backend (127):** `cd backend && .venv\Scripts\python -m pytest -q`.
+- **Tests backend (147):** `cd backend && .venv\Scripts\python -m pytest -q`.
 - **Frontend en local:** `cd frontend && npm install && npm run dev`.
 - **Desplegar:** `git push origin main` → Vercel y Render redepliegan solos. Guía: **[`docs/DEPLOY_GRATIS.md`](docs/DEPLOY_GRATIS.md)**.
 

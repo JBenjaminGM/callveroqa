@@ -243,6 +243,8 @@ def list_calls(
     min_score: int | None = Query(default=None, ge=0, le=100),
     max_score: int | None = Query(default=None, ge=0, le=100),
     unassigned: bool | None = Query(default=None),
+    q: str | None = Query(default=None, max_length=100),
+    critical: bool | None = Query(default=None),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
     sort_by: str = Query(default="created_at"),
@@ -250,7 +252,13 @@ def list_calls(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Listado paginado de llamadas con filtros (incluye filtro por fecha de subida)."""
+    """
+    Listado paginado de llamadas con filtros (incluye filtro por fecha de subida).
+
+    `q` busca en lo que se dijo en la llamada (transcripción) y devuelve el
+    fragmento que coincide; `critical=true` deja solo las suspendidas por un
+    criterio crítico.
+    """
     # Antes de listar se rescatan las que llevan demasiado tiempo procesándose:
     # es la pantalla donde se notaría, y así ninguna queda colgada para siempre.
     call_service.rescatar_atascadas(db)
@@ -268,6 +276,8 @@ def list_calls(
         min_score=min_score,
         max_score=max_score,
         unassigned=unassigned,
+        q=q,
+        critical=critical,
         page=page,
         page_size=page_size,
         sort_by=sort_by,
@@ -283,6 +293,12 @@ def list_calls(
             duration_seconds=c.duration_seconds,
             status=c.status,
             global_score=c.analysis.global_score if c.analysis else None,
+            critical_failed=bool(c.analysis and c.analysis.uncapped_score is not None),
+            match_snippet=(
+                call_service.match_snippet(c.transcription.full_text, q)
+                if q and c.transcription
+                else None
+            ),
             created_at=c.created_at,
         )
         for c in items

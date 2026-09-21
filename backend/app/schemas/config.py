@@ -8,6 +8,9 @@ class RubricCriterion(BaseModel):
 
     name: str
     enabled: bool = True
+    # Crítico (auto-fail): incumplirlo suspende la llamada entera (nota global 0),
+    # como un incumplimiento normativo en banca. Solo cuenta si está activo.
+    critical: bool = False
 
 
 class RubricDimensionOut(BaseModel):

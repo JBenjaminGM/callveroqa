@@ -91,7 +91,11 @@ def update_rubric(
         seen.add(key)
 
         criteria = [
-            {"name": c.name.strip(), "enabled": bool(c.enabled)}
+            {
+                "name": c.name.strip(),
+                "enabled": bool(c.enabled),
+                "critical": bool(c.critical),
+            }
             for c in dim.criteria
             if c.name and c.name.strip()
         ]

@@ -34,6 +34,11 @@ from app.models.settings import RubricConfig
 from app.models.transcription import Transcription
 from app.prompts import get_analysis_prompt
 from app.services.analysis_service import calculate_global_score, get_analysis_provider
+from app.services.evidence_service import (
+    apply_auto_fail,
+    normalize_critical_failures,
+    normalize_evidence,
+)
 from app.services.campaign_service import build_product_note_text
 from app.services.conversation_metrics_service import compute_conversation_metrics
 from app.services.masking_service import mask_sensitive_data
@@ -184,6 +189,18 @@ def _run_pipeline(db, call: Call) -> None:
     }
     global_score = calculate_global_score(dimension_scores, rubric_weights)
 
+    # Evidencia de cada nota y criterios críticos, saneados contra la rúbrica.
+    n_segments = len(masked_segments)
+    dimension_evidence = normalize_evidence(
+        analysis_result.get("dimension_evidence"),
+        [r["dimension_key"] for r in rubric_list],
+        n_segments,
+    )
+    critical_failures = normalize_critical_failures(
+        analysis_result.get("critical_failures"), rubric_list, n_segments
+    )
+    global_score, uncapped_score = apply_auto_fail(global_score, critical_failures)
+
     # ---- Detección y emparejamiento del ejecutivo ----
     # La IA detecta el nombre del ejecutivo en la transcripción. Si coincide
     # (de forma difusa) con un ejecutivo registrado, se asigna la llamada a él;
@@ -215,6 +232,9 @@ def _run_pipeline(db, call: Call) -> None:
         call_id=call.id,
         global_score=global_score,
         dimension_scores=dimension_scores,
+        dimension_evidence=dimension_evidence or None,
+        critical_failures=critical_failures or None,
+        uncapped_score=uncapped_score,
         recommendations=analysis_result.get("recommendations", []),
         summary=analysis_result.get("summary"),
         ai_provider=_provider_name(),

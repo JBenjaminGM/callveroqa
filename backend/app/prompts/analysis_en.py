@@ -29,6 +29,22 @@ def build_analysis_prompt(
         rubric_lines.append(line)
     rubric_block = "\n".join(rubric_lines)
 
+    # Critical (auto-fail) criteria: only enabled ones flagged as critical.
+    critical_lines = [
+        f"- {c['name']} (dimension: {dim['dimension_key']})"
+        for dim in rubric
+        for c in (dim.get("criteria") or [])
+        if c.get("enabled") and c.get("critical") and c.get("name")
+    ]
+    critical_block = ""
+    if critical_lines:
+        critical_block = (
+            "\n\nCRITICAL CRITERIA (failing any of them FAILS the whole call):\n"
+            + "\n".join(critical_lines)
+            + "\nReport them in \"critical_failures\" ONLY if the transcript clearly "
+            "shows they were breached. When in doubt, do not report."
+        )
+
     transcript = "\n".join(
         f"[{i}] {seg.get('text', '')}" for i, seg in enumerate(segments)
     )
@@ -56,11 +72,14 @@ TRANSCRIPT (each line is a numbered segment [i]):
 
 EVALUATION RUBRIC (score 0-100 per dimension):
 
-{rubric_block}{product_note_block}
+{rubric_block}{critical_block}{product_note_block}
 
 INSTRUCTIONS:
 - Score EACH rubric dimension 0-100, considering ONLY the sub-criteria listed in it.
   Base each score on concrete evidence from the transcript.
+- EVIDENCE: for EACH dimension, in "dimension_evidence" explain in ONE sentence why you
+  gave that score and cite 1 to 3 segment numbers [i] backing it (what was said, or where
+  it should have been said and wasn't). Do not invent segments.
 - SPEAKER ATTRIBUTION (very important): the transcript is NOT pre-labeled. For EACH
   segment [0..{n - 1}] decide "agent" (bank AGENT) or "customer" (CUSTOMER) based on
   CONTENT, not order. Cues:
@@ -84,6 +103,12 @@ Respond EXCLUSIVELY with valid JSON in this exact structure:
   "dimension_scores": {{
 {score_lines}
   }},
+  "dimension_evidence": {{
+    "<dimension_key>": {{"justification": "<one sentence>", "segments": [<i>, ...]}}
+  }},
+  "critical_failures": [
+    {{"dimension": "<dimension_key>", "criterion": "<exact critical criterion name>", "segment": <i or null>, "reason": "<what happened>"}}
+  ],
   "summary": "<executive summary of the call>",
   "recommendations": [
     {{

@@ -1,7 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Lock, Plus, Save, Scale, Trash2, Unlock } from 'lucide-react';
+import {
+  Lock,
+  OctagonX,
+  Plus,
+  Save,
+  Scale,
+  Trash2,
+  Unlock,
+} from 'lucide-react';
 import {
   useRubric,
   useSettings,
@@ -161,6 +169,7 @@ export default function SettingsPage() {
           criteria: (d.criteria ?? []).map((c) => ({
             name: c.name,
             enabled: c.enabled,
+            critical: !!c.critical,
           })),
         })),
       );
@@ -215,7 +224,7 @@ export default function SettingsPage() {
   function patchCriterion(
     i: number,
     ci: number,
-    patch: Partial<{ name: string; enabled: boolean }>,
+    patch: Partial<{ name: string; enabled: boolean; critical: boolean }>,
   ) {
     setDims((ds) =>
       ds.map((d, j) =>
@@ -234,7 +243,10 @@ export default function SettingsPage() {
     setDims((ds) =>
       ds.map((d, j) =>
         j === i
-          ? { ...d, criteria: [...d.criteria, { name: '', enabled: true }] }
+          ? {
+              ...d,
+              criteria: [...d.criteria, { name: '', enabled: true, critical: false }],
+            }
           : d,
       ),
     );
@@ -284,7 +296,11 @@ export default function SettingsPage() {
       weight: Number(d.weight) || 0,
       criteria: d.criteria
         .filter((c) => c.name.trim())
-        .map((c) => ({ name: c.name.trim(), enabled: c.enabled })),
+        .map((c) => ({
+          name: c.name.trim(),
+          enabled: c.enabled,
+          critical: !!c.critical,
+        })),
     }));
     try {
       await updateRubric.mutateAsync(payload);
@@ -432,6 +448,27 @@ export default function SettingsPage() {
                                 : 'flex-1 !py-1.5 text-small line-through opacity-60'
                             }
                           />
+                          {/* Crítico = auto-fail: incumplirlo suspende la llamada (nota 0). */}
+                          <button
+                            type="button"
+                            aria-pressed={!!c.critical}
+                            onClick={() =>
+                              patchCriterion(i, ci, { critical: !c.critical })
+                            }
+                            title={
+                              c.critical
+                                ? 'Crítico: si se incumple, la llamada queda suspendida (nota 0). Pulsa para quitarlo.'
+                                : 'Marcar como crítico: incumplirlo suspenderá la llamada entera.'
+                            }
+                            className={
+                              c.critical
+                                ? 'press-feedback flex shrink-0 items-center gap-1 rounded-control bg-danger/15 px-2 py-1 text-small font-medium text-danger'
+                                : 'press-feedback flex shrink-0 items-center gap-1 rounded-control px-2 py-1 text-small text-text-muted transition-colors hover:bg-bg-accent hover:text-text-secondary'
+                            }
+                          >
+                            <OctagonX size={14} aria-hidden />
+                            Crítico
+                          </button>
                           <button
                             onClick={() => removeCriterion(i, ci)}
                             title="Quitar subcategoría"

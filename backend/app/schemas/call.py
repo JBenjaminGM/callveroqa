@@ -113,6 +113,10 @@ class CallListItem(BaseModel):
     duration_seconds: int | None = None
     status: CallStatus
     global_score: int | None = None
+    # True si la llamada se suspendió por un criterio crítico (auto-fail).
+    critical_failed: bool = False
+    # Solo en búsquedas (?q=): fragmento de la transcripción con la coincidencia.
+    match_snippet: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

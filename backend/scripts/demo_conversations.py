@@ -284,6 +284,106 @@ CONVERSACIONES: dict[str, dict] = {
     },
 }
 
+# Evidencia de cada nota, escrita a mano igual que las notas: una frase y los
+# segmentos (índice desde 0) en que se apoya. Es lo que la IA devuelve en
+# `dimension_evidence` y lo que la ficha de la llamada convierte en saltos al audio.
+EVIDENCIA: dict[str, dict[str, tuple[str, list[int]]]] = {
+    "tarjetas_alta": {
+        "greeting": ("Se identifica con nombre y banco, y se despide por el nombre del cliente.", [0, 12]),
+        "assertiveness": ("Responde cada pregunta con cifras, sin rodeos ni presión.", [6, 8]),
+        "promotions": ("Presenta los dos beneficios clave de la tarjeta en una sola frase.", [4]),
+        "compliance": ("Avisa de la grabación, informa la TEA y aclara que la aprobación depende de la evaluación.", [2, 6, 10]),
+        "resolution": ("Ofrece enviar las condiciones por escrito, pero sin comprometer una fecha.", [10]),
+        "objections": ("Ante la duda por la cuota, explica cuándo se exonera en vez de esquivarla.", [7, 8]),
+        "sentiment": ("El cliente cierra receptivo y pide que le envíen la información.", [11]),
+    },
+    "tarjetas_baja": {
+        "greeting": ("No se identifica ni avisa de la grabación; el cliente tiene que preguntar quién llama.", [0, 1]),
+        "assertiveness": ("Repite «es gratis» en lugar de responder la duda del cliente.", [8]),
+        "promotions": ("Presenta la tarjeta con condiciones falsas en vez de sus beneficios reales.", [2]),
+        "compliance": ("Omite la TEA y hace dos afirmaciones prohibidas: gratis de por vida y aprobación inmediata.", [2, 4, 6]),
+        "resolution": ("Pide la dirección sin haber aclarado cuánto va a pagar el cliente.", [7, 8]),
+        "objections": ("Esquiva la pregunta por los intereses: «eso lo vemos después».", [5, 6]),
+        "sentiment": ("El cliente termina desconfiado y rechaza la oferta.", [7, 9]),
+    },
+    "prestamos_alta": {
+        "greeting": ("Se identifica y avisa de la grabación en la primera frase.", [0]),
+        "assertiveness": ("Da cuota y total exactos sin que el cliente tenga que insistir.", [6]),
+        "promotions": ("Aterriza monto, plazo y tasa del préstamo que el cliente consultó.", [4]),
+        "compliance": ("Informa TEA, total a pagar y que queda sujeto a evaluación crediticia.", [4, 6, 12]),
+        "resolution": ("Confirma que el cliente entendió el total antes de cerrar.", [10, 11]),
+        "objections": ("Responde a la comparación con otro banco con dos diferencias concretas.", [7, 8]),
+        "sentiment": ("El cliente pasa de la duda al interés.", [9, 11]),
+    },
+    "prestamos_baja": {
+        "greeting": ("Se identifica y avisa de la grabación, pero de corrido y sin preguntar si es buen momento.", [0]),
+        "assertiveness": ("Monólogo de más de treinta segundos; ignora dos intentos del cliente de preguntar.", [2, 3, 4]),
+        "promotions": ("Enumera todas las condiciones de golpe, sin conectarlas con lo que busca el cliente.", [2]),
+        "compliance": ("Menciona la TEA, pero nunca el total a pagar.", [2, 8]),
+        "resolution": ("Deja para un correo la pregunta por el total a pagar.", [7, 8]),
+        "objections": ("No deja que el cliente llegue a formular su duda.", [3, 5]),
+        "sentiment": ("El cliente acepta el correo por cansancio, no por interés.", [9]),
+    },
+    "seguros_alta": {
+        "greeting": ("Se identifica y avisa de la grabación.", [0]),
+        "assertiveness": ("Explica la carencia con claridad y sin minimizarla.", [8]),
+        "promotions": ("Presenta coberturas y prima, aunque en abstracto.", [4]),
+        "compliance": ("Explica exclusiones y periodo de carencia antes de que el cliente los descubra.", [6, 8]),
+        "resolution": ("Envía las condiciones completas por escrito.", [10]),
+        "objections": ("Ante «¿cubre cualquier situación?», responde con las exclusiones reales.", [5, 6]),
+        "sentiment": ("El cliente agradece la claridad.", [9]),
+    },
+    "seguros_baja": {
+        "greeting": ("No se identifica por su nombre ni avisa de la grabación.", [0]),
+        "assertiveness": ("Presiona con la fecha límite de la promoción.", [8]),
+        "promotions": ("Presenta el seguro con una cobertura que no existe.", [2, 6]),
+        "compliance": ("Afirma que cubre cualquier imprevisto y omite exclusiones y carencia.", [2, 4, 6]),
+        "resolution": ("Propone contratar y cancelar después en vez de resolver las dudas.", [8]),
+        "objections": ("Responde a «¿desde cuándo cubre?» con información falsa.", [5, 6]),
+        "sentiment": ("El cliente desconfía y prefiere leerlo antes.", [7, 9]),
+    },
+}
+
+# Criterios críticos (auto-fail) incumplidos. Solo dos de las tres llamadas
+# flojas: la de préstamos es mala, pero informa la TEA y no afirma nada
+# prohibido. La demo enseña así la diferencia entre «baja» y «suspendida».
+CRITICOS: dict[str, list[dict]] = {
+    "tarjetas_baja": [
+        {
+            "dimension": "compliance", "criterion": "Sin afirmaciones prohibidas", "segment": 2,
+            "reason": "Afirma que la tarjeta es «totalmente gratis de por vida» y promete aprobación inmediata.",
+        },
+        {
+            "dimension": "compliance", "criterion": "Disclaimers obligatorios", "segment": 6,
+            "reason": "Nunca informa la TEA: ante la pregunta por los intereses responde «eso lo vemos después».",
+        },
+    ],
+    "seguros_baja": [
+        {
+            "dimension": "compliance", "criterion": "Sin afirmaciones prohibidas", "segment": 2,
+            "reason": "Afirma que el seguro cubre «cualquier imprevisto».",
+        },
+        {
+            "dimension": "compliance", "criterion": "Disclaimers obligatorios", "segment": 6,
+            "reason": "Dice que cubre «desde que lo contrata»: omite la carencia de 60 días y las exclusiones.",
+        },
+    ],
+}
+
+# Criterios que la demo necesita marcados como críticos en la rúbrica.
+CRITERIOS_CRITICOS_DEMO = {
+    "compliance": ["Disclaimers obligatorios", "Sin afirmaciones prohibidas"],
+}
+
+
+def evidencia(clave: str) -> dict[str, dict]:
+    """Evidencia en el formato que guarda `Analysis.dimension_evidence`."""
+    return {
+        dim: {"justification": texto, "segments": segs}
+        for dim, (texto, segs) in EVIDENCIA.get(clave, {}).items()
+    }
+
+
 # Pausa entre turnos, en segundos. Sirve para que las métricas de conversación
 # (porcentaje de silencio, turnos por minuto) den valores realistas.
 PAUSA_ENTRE_TURNOS = 0.6

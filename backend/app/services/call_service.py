@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.models.analysis import Analysis
 from app.models.call import Call, CallStatus
+from app.models.transcription import Transcription
 
 logger = logging.getLogger("callveroqa.calls")
 
@@ -80,6 +81,8 @@ def list_calls(
     min_score: int | None = None,
     max_score: int | None = None,
     unassigned: bool | None = None,
+    q: str | None = None,
+    critical: bool | None = None,
     page: int = 1,
     page_size: int = 50,
     sort_by: str = "created_at",
@@ -89,11 +92,21 @@ def list_calls(
     Lista llamadas con filtros y paginación.
 
     El filtro de fechas se aplica sobre la fecha de subida (created_at).
+    `q` busca el texto dentro de la transcripción (sin distinguir mayúsculas).
+    `critical` deja solo las suspendidas por un criterio crítico.
     Devuelve (lista de llamadas de la página, total de resultados).
     """
     query = select(Call).options(
         selectinload(Call.agent), selectinload(Call.analysis)
     )
+
+    q = (q or "").strip()
+    if q:
+        # Se escapan los comodines de LIKE: buscar "100%" debe buscar eso, literal.
+        pattern = "%" + q.replace("\\", "\\\\").replace("%", r"\%").replace("_", r"\_") + "%"
+        query = query.join(Transcription, Transcription.call_id == Call.id).where(
+            Transcription.full_text.ilike(pattern, escape="\\")
+        ).options(selectinload(Call.transcription))
 
     if agent_id is not None:
         query = query.where(Call.agent_id == agent_id)
@@ -109,13 +122,17 @@ def list_calls(
             Call.created_at < datetime.combine(date_to + timedelta(days=1), time.min)
         )
 
-    # El filtro por score requiere unir con la tabla de análisis.
-    if min_score is not None or max_score is not None:
+    # Los filtros por score y por crítico requieren unir con la tabla de análisis.
+    if min_score is not None or max_score is not None or critical:
         query = query.join(Analysis, Analysis.call_id == Call.id)
         if min_score is not None:
             query = query.where(Analysis.global_score >= min_score)
         if max_score is not None:
             query = query.where(Analysis.global_score <= max_score)
+        if critical:
+            # uncapped_score solo existe cuando hubo auto-fail (es NULL de SQL de
+            # verdad; las columnas JSON guardan None como null JSON, no sirven).
+            query = query.where(Analysis.uncapped_score.is_not(None))
 
     # Conteo total (antes de paginar).
     total = db.scalar(select(func.count()).select_from(query.subquery())) or 0
@@ -135,6 +152,26 @@ def list_calls(
     query = query.offset((page - 1) * page_size).limit(page_size)
     items = list(db.scalars(query).all())
     return items, total
+
+
+SNIPPET_RADIUS = 60
+
+
+def match_snippet(text: str | None, q: str | None) -> str | None:
+    """
+    Fragmento de la transcripción alrededor de la primera coincidencia de `q`,
+    para que el listado enseñe POR QUÉ salió cada llamada en la búsqueda.
+    """
+    q = (q or "").strip()
+    if not text or not q:
+        return None
+    pos = text.lower().find(q.lower())
+    if pos < 0:
+        return None
+    start = max(0, pos - SNIPPET_RADIUS)
+    end = min(len(text), pos + len(q) + SNIPPET_RADIUS)
+    snippet = " ".join(text[start:end].split())
+    return ("…" if start > 0 else "") + snippet + ("…" if end < len(text) else "")
 
 def get_team_average(db: Session) -> dict[str, float]:
     """

@@ -133,6 +133,10 @@ export interface CallFilters {
   date_from?: string;
   date_to?: string;
   unassigned?: boolean;
+  /** Busca en lo que se dijo en la llamada (transcripción). */
+  q?: string;
+  /** Solo las suspendidas por un criterio crítico. */
+  critical?: boolean;
   page?: number;
   page_size?: number;
 }

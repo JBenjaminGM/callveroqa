@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 /* ============================================================
-   Identidad de marca CALLAIBRATE
+   Identidad de marca CALLVEROQA
    Paper + Ink dominan; Rust es el acento de marca y Gold el secundario.
-   "Calibra la calidad de cada llamada con IA."
+   "Calidad verificada en cada llamada."
    Estas variables CSS son la fuente de verdad del color de toda la app.
    Ver docs/BRAND.md.
    ============================================================ */
@@ -16,7 +16,7 @@
   --ink-soft: #6b5d52;   /* texto secundario */
   --paper: #f5f1e8;      /* fondo general */
   --surface: #ffffff;    /* tarjetas y superficies */
-  --rust: #b8441f;       /* acento de marca, CTA, "AI" del wordmark */
+  --rust: #b8441f;       /* acento de marca, CTA, "Vero" del wordmark */
   --rust-soft: #f0dac9;  /* fondos de badge/hover sobre rust */
   --gold: #a67c27;       /* acento secundario */
   --gold-soft: #efe2c4;  /* fondos de badge sobre gold */

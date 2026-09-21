@@ -22,7 +22,7 @@ from app.models.user import ROLE_ASESOR
 from app.utils.security import hash_password
 
 # Almacenamiento de audios en una carpeta temporal durante los tests.
-settings.storage_path = tempfile.mkdtemp(prefix="callaibrate_test_")
+settings.storage_path = tempfile.mkdtemp(prefix="callveroqa_test_")
 
 # Se desactiva el rate limiting en los tests: el cliente de pruebas usa
 # siempre la misma IP y dispararía el límite de /auth/login entre tests.

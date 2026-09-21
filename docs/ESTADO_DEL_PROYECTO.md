@@ -1,4 +1,4 @@
-# 🧠 Estado del Proyecto — CallAIbrate
+# 🧠 Estado del Proyecto — CallVeroQA
 
 > **Memoria de desarrollo.** Este documento resume lo construido, las decisiones y lo pendiente.
 >
@@ -8,7 +8,7 @@
 **Última actualización:** Septiembre 2026
 **Estado general:** ✅ Plataforma funcional. **87 tests** backend en verde. **Fase 2
 (analítica de alto impacto)**, **rediseño premium de indicadores** y **rebrand a
-CallAIbrate** aplicados.
+CallVeroQA** aplicados.
 
 > ⚠️ **PRODUCCIÓN RECONSTRUIDA (septiembre 2026).** La PostgreSQL del plan gratuito de
 > Render **caducó y fue eliminada**, así que el backend llevaba dos meses muriendo al
@@ -26,7 +26,7 @@ CallAIbrate** aplicados.
 
 ---
 
-## 1. ¿Qué es CallAIbrate?
+## 1. ¿Qué es CallVeroQA?
 
 Plataforma web de **Quality Assurance automatizado con IA** para call centers
 bancarios. El usuario sube grabaciones de llamadas; la IA las transcribe
@@ -105,7 +105,7 @@ callqa-ai/
 │
 ├── frontend/                 # Aplicación Next.js
 │   ├── app/                   # Páginas (login + grupo (main) + /campaigns + /mi-panel)
-│   │   └── globals.css        # Tokens de color CallAIbrate (implementación canónica)
+│   │   └── globals.css        # Tokens de color CallVeroQA (implementación canónica)
 │   ├── components/            # UI, layout, charts, dashboard
 │   ├── lib/
 │   │   └── api.ts             # Axios + resiliencia de cold-start (timeout 90s, reintentos)
@@ -177,7 +177,7 @@ callqa-ai/
   configuración y **Mi rendimiento** (panel del asesor).
 - **Navegación y redirección por rol**: asesor → `/mi-panel`; admin/jefe →
   `/dashboard`; guard por rol que devuelve 403 a quien no corresponde.
-- Identidad visual **CallAIbrate** (modo claro por defecto, sidebar en ink).
+- Identidad visual **CallVeroQA** (modo claro por defecto, sidebar en ink).
 - **Dashboard del jefe (Fase 2)**: toolbar compacto con control segmentado, banda
   de resumen con **gauge de score** + KPI cards con delta/sparkline, tendencias
   (área con gradiente + donut de distribución), **tabla de campañas** con barras y
@@ -219,14 +219,14 @@ callqa-ai/
 
 ## 6. Sistema de diseño
 
-Identidad **CallAIbrate**. La fuente de verdad de la marca es
+Identidad **CallVeroQA**. La fuente de verdad de la marca es
 **[`BRAND.md`](BRAND.md)**; **[`DESIGN.md`](DESIGN.md)** explica cómo se implementa.
 
 - Paleta: **paper `#F5F1E8`** e **ink `#2A2420`** dominan; **rust `#B8441F`** es el
   acento de marca y **gold `#A67C27`** el secundario. `success`/`danger` son
   funcionales, no decorativos.
 - **Modo claro por defecto** + **modo oscuro derivado** (addendum de `BRAND.md`).
-- **Sidebar siempre en ink**, con el wordmark en negativo y el "AI" en rust.
+- **Sidebar siempre en ink**, con el wordmark en negativo y el "Vero" en rust.
 - Radios de **8px** en contenedores y **6px** en controles; sombras sutiles, sin
   glassmorphism ni gradientes decorativos.
 - Titulares en **caso frase** con una palabra clave opcional en rust (`.hl`).
@@ -235,7 +235,7 @@ Identidad **CallAIbrate**. La fuente de verdad de la marca es
 - **Implementación canónica del color:** `frontend/app/globals.css` + `tailwind.config.ts`.
 
 > Nota histórica: hubo tres identidades visuales antes de esta y **todas quedaron
-> obsoletas** al adoptar la de CallAIbrate. Se describen en
+> obsoletas** al adoptar la de CallVeroQA. Se describen en
 > [`HISTORIA.md`](HISTORIA.md).
 
 ---
@@ -277,7 +277,7 @@ Levanta 5 servicios (postgres, redis, api, worker, frontend).
 
 - Frontend: <http://localhost:3000>
 - API / docs: <http://localhost:8000/docs>
-- Cuentas sembradas: `admin@callaibrate.com` (admin) · `jefe@callaibrate.com`
+- Cuentas sembradas: `admin@callveroqa.com` (admin) · `jefe@callveroqa.com`
   (jefe) · un **asesor** por cada ejecutivo demo (su email, p. ej.
   `maria@banco.com`). Las contraseñas se **generan al azar** en el primer seed y se
   imprimen una sola vez (`docker compose logs api`); se pueden fijar con
@@ -375,7 +375,7 @@ caduca a los **90 días**.
       `GET /calls/{id}/audio` + `components/calls/transcript-player.tsx`).
 - [x] **Exportación CSV** del reporte del equipo (`GET /dashboard/report.csv` +
       botón en el dashboard, respeta los filtros activos).
-- [x] **Rebrand a CallAIbrate** (`docs/BRAND.md` + `DESIGN.md`).
+- [x] **Rebrand a CallVeroQA** (`docs/BRAND.md` + `DESIGN.md`).
 - [x] **Endurecimiento de seguridad:** contraseñas de seed aleatorias con rotación de
       las publicadas, guardarraíl de `JWT_SECRET` en producción, `datetime.utcnow()`
       corregido.
@@ -440,7 +440,7 @@ caduca a los **90 días**.
     artefactos Railway), se alinearon comentarios/docstrings al estado real y se
     consolidaron los specs de origen (01–07) en los docs canónicos.
 
-20. **Rebrand a CallAIbrate + mejoras**: nueva identidad (`docs/BRAND.md` como fuente
+20. **Rebrand a CallVeroQA + mejoras**: nueva identidad (`docs/BRAND.md` como fuente
     de verdad) con paleta paper/ink y acentos rust/gold, tipografías Manrope / Inter /
     IBM Plex Mono, wordmark waveform como componente SVG, radios de 8/6 px en lugar de
     los contenedores achaflanados y titulares en caso frase. Además: **reproductor de

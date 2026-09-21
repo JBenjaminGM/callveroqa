@@ -17,7 +17,7 @@ from app.schemas.campaign import (
 )
 from app.services import campaign_ai
 
-logger = logging.getLogger("callaibrate.campaigns")
+logger = logging.getLogger("callveroqa.campaigns")
 
 # Etiquetas legibles de cada campo de la nota de producto (para el texto del prompt).
 _FIELD_LABELS = {

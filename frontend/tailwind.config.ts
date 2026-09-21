@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * Configuración de Tailwind para CallAIbrate.
+ * Configuración de Tailwind para CallVeroQA.
  *
  * Los tokens semánticos (bg-*, text-*, accent-*) se mapean a variables CSS
  * definidas en app/globals.css, lo que permite el cambio de modo claro/oscuro
@@ -40,7 +40,7 @@ const config: Config = {
         warning: 'var(--warning)',
         danger: 'var(--danger)',
         info: 'var(--info)',
-        // Tokens de marca CallAIbrate (docs/BRAND.md).
+        // Tokens de marca CallVeroQA (docs/BRAND.md).
         ink: 'var(--ink)',
         'ink-soft': 'var(--ink-soft)',
         paper: 'var(--paper)',

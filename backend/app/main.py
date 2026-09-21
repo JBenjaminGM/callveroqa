@@ -1,5 +1,5 @@
 """
-Punto de entrada de la aplicación FastAPI de CallAIbrate.
+Punto de entrada de la aplicación FastAPI de CallVeroQA.
 
 Configura CORS, logging estructurado, rate limiting, los routers de la API
 y un middleware que añade el header de aviso de prototipo a cada respuesta.
@@ -60,7 +60,7 @@ def _configure_logging() -> None:
 
 
 _configure_logging()
-logger = logging.getLogger("callaibrate")
+logger = logging.getLogger("callveroqa")
 
 
 # Valor de ejemplo de JWT_SECRET. Sirve en desarrollo; en producción firmaría los
@@ -85,7 +85,7 @@ def verify_production_secrets() -> None:
 verify_production_secrets()
 
 app = FastAPI(
-    title="CallAIbrate - API",
+    title="CallVeroQA - API",
     description=(
         "Backend de la plataforma de Quality Assurance automatizado con IA para "
         "call centers. Vista previa para evaluación — no utilizar con datos reales de clientes."
@@ -139,7 +139,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 def root() -> dict:
     """Endpoint raíz: confirma que la API está viva."""
     return {
-        "service": "CallAIbrate",
+        "service": "CallVeroQA",
         "status": "ok",
         "notice": PROTOTYPE_NOTICE,
         "docs": "/docs",

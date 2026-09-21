@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 /**
- * Marca CallAIbrate (docs/BRAND.md).
+ * Marca CallVeroQA (docs/BRAND.md).
  *
  * El símbolo son 6 barras verticales tipo waveform: comunica "señal de voz" sin
  * recurrir al cliché del ícono de teléfono. La barra central va en `rust` y hay
@@ -14,7 +14,7 @@ export function Waveform({ className }: { className?: string }) {
       viewBox="0 0 72 40"
       fill="none"
       role="img"
-      aria-label="CallAIbrate"
+      aria-label="CallVeroQA"
       className={cn('h-5 w-auto', className)}
     >
       <rect x="0" y="16" width="8" height="8" rx="4" fill="currentColor" />
@@ -34,8 +34,8 @@ const WORDMARK_SIZES = {
 } as const;
 
 /**
- * Lockup completo: símbolo + nombre. El fragmento "AI" siempre va en `rust`,
- * que es lo que hace legible el juego de palabras Call · AI · Calibrate.
+ * Lockup completo: símbolo + nombre. El fragmento "Vero" siempre va en `rust`,
+ * que es lo que separa y hace legibles las tres piezas: Call · Vero · QA.
  */
 export function Wordmark({
   size = 'md',
@@ -51,7 +51,7 @@ export function Wordmark({
       <span
         className={cn('font-heading font-extrabold tracking-tight', text)}
       >
-        Call<span className="text-rust">AI</span>brate
+        Call<span className="text-rust">Vero</span>QA
       </span>
     </span>
   );

@@ -1,4 +1,4 @@
-# 🎧 CallAIbrate — Backend
+# 🎧 CallVeroQA — Backend
 
 Backend de la plataforma de Quality Assurance automatizado para call centers
 bancarios del sector banca. Permite subir grabaciones de llamadas,
@@ -100,8 +100,8 @@ El arranque ejecuta automáticamente las migraciones y el *seed* de datos.
 
 | Rol | Email |
 |---|---|
-| admin | `admin@callaibrate.com` |
-| jefe | `jefe@callaibrate.com` |
+| admin | `admin@callveroqa.com` |
+| jefe | `jefe@callveroqa.com` |
 | asesor | el email del ejecutivo (p. ej. `maria@banco.com`) |
 
 > **Las contraseñas se generan al azar en el primer *seed* y se imprimen una sola

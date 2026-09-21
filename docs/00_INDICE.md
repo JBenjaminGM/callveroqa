@@ -1,14 +1,14 @@
-# 📚 Índice de documentación — CallAIbrate
+# 📚 Índice de documentación — CallVeroQA
 
 > Toda la documentación del proyecto vive en esta carpeta **`docs/`**. Este es el
 > punto de entrada. En la raíz del repo solo quedan `README.md` y los punteros
 > `AGENTS.md` / `CLAUDE.md` (para que las IAs los descubran y apunten aquí).
 
-**CallAIbrate** — *Calibra la calidad de cada llamada con IA.* Plataforma de QA
+**CallVeroQA** — *Calidad verificada en cada llamada.* Plataforma de QA
 automatizado para call centers del sector banca. Desplegada en vivo:
 
 - 🌐 Frontend: https://callaibrate.vercel.app · Backend: https://callaibrate-api.onrender.com
-- 👤 Cuentas sembradas: `admin@callaibrate.com`, `jefe@callaibrate.com` y un asesor por ejecutivo demo. **Las contraseñas se generan al azar y se imprimen una vez** (`docker compose logs api`).
+- 👤 Cuentas sembradas: `admin@callveroqa.com`, `jefe@callveroqa.com` y un asesor por ejecutivo demo. **Las contraseñas se generan al azar y se imprimen una vez** (`docker compose logs api`).
 
 > Dos repos: **`callqa-ai`** (privado, completo, fuente de verdad — este) y **`callqa`**
 > (público, solo código limpio). Ver `AGENTS.md` §16.
@@ -53,7 +53,7 @@ automatizado para call centers del sector banca. Desplegada en vivo:
   reglas de negocio, gobernanza/compliance y qué queda.
 - **`CHANGELOG.md`** — Historial de cambios (con commits).
 - **`DEPLOY_GRATIS.md`** — Despliegue gratis paso a paso (Vercel + Render).
-- **`BRAND.md`** — **Fuente de verdad de la marca CallAIbrate**: paleta (paper/ink
+- **`BRAND.md`** — **Fuente de verdad de la marca CallVeroQA**: paleta (paper/ink
   con acentos rust y gold), tipografías Manrope/Inter/IBM Plex Mono, wordmark, formas
   y tono de voz. Cualquier cambio visual empieza aquí.
 - **`DESIGN.md`** — Cómo se implementa `BRAND.md` en la app: tokens, componentes y

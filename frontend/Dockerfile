@@ -1,5 +1,5 @@
 # ============================================================
-# CallAIbrate - Frontend (Next.js 14) - imagen de producción
+# CallVeroQA - Frontend (Next.js 14) - imagen de producción
 # Build multi-stage con salida 'standalone' para arranque rápido.
 # ============================================================
 

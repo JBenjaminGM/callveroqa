@@ -13,7 +13,7 @@ from app.schemas.agent import AgentCreate, AgentUpdate
 from app.services.name_matching import find_matching_agent
 from app.utils.security import hash_password
 
-logger = logging.getLogger("callaibrate.agents")
+logger = logging.getLogger("callveroqa.agents")
 
 
 def link_unassigned_calls(db: Session, agent: Agent) -> int:

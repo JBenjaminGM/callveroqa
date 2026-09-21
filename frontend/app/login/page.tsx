@@ -55,7 +55,7 @@ export default function LoginPage() {
             <Wordmark size="lg" />
 
             <h1 className="mt-7 text-display text-text-primary">
-              Calibra la calidad
+              Verifica la calidad
               <br />
               de cada <span className="hl">llamada</span>
             </h1>

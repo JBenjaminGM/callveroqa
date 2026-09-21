@@ -4,7 +4,7 @@
 (guía completa: estado, arquitectura, mapa del repo, correr/testear/desplegar, *gotchas*);
 (2) tu **memoria de proyecto** se carga sola (índice `MEMORY.md`). Docs en **[`docs/`](docs/)**.
 
-El producto se llama **CallAIbrate** ("Calibra la calidad de cada llamada con IA").
+El producto se llama **CallVeroQA** ("Calidad verificada en cada llamada").
 
 Estado: plataforma **funcional y desplegada**, y **terminada** (el banner de
 "prototipo/vista previa" se **retiró** de la UI; solo queda el header interno
@@ -31,8 +31,8 @@ Esenciales:
   el limpio: `ops/publish-clean.ps1` (ver AGENTS §16).
 - **Seed sin contraseñas fijas:** se generan al azar y se imprimen una vez
   (`docker compose logs api`); fijables con `SEED_ADMIN_PASSWORD` / `SEED_JEFE_PASSWORD` /
-  `SEED_ASESOR_PASSWORD`. Cuentas: `admin@callaibrate.com`, `jefe@callaibrate.com`.
-- **Diseño = identidad CallAIbrate.** Fuente de verdad de la marca: **`docs/BRAND.md`**
+  `SEED_ASESOR_PASSWORD`. Cuentas: `admin@callveroqa.com`, `jefe@callveroqa.com`.
+- **Diseño = identidad CallVeroQA.** Fuente de verdad de la marca: **`docs/BRAND.md`**
   (paper + ink, acentos rust y gold; Manrope / Inter / IBM Plex Mono; radios 8/6 px).
   Implementación canónica del color: `frontend/app/globals.css` + `tailwind.config.ts`.
   **Las identidades visuales anteriores están OBSOLETAS**: cuáles fueron y qué

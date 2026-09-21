@@ -50,7 +50,7 @@ def generate_call_report(call: Call) -> bytes:
     story: list = []
 
     # --- Encabezado ---
-    story.append(Paragraph("CallAIbrate — Reporte de llamada", styles["Title"]))
+    story.append(Paragraph("CallVeroQA — Reporte de llamada", styles["Title"]))
     story.append(Paragraph(
         "<i>Vista previa para evaluación. Documento generado automáticamente; "
         "no utilizar con datos reales de clientes sin aprobación de Compliance.</i>",

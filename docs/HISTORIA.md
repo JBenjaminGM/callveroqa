@@ -1,10 +1,11 @@
 # Historia
 
-> De dónde viene CallAIbrate: qué pasó, en qué orden, y qué se cambió antes del
-> rebrand.
+> De dónde viene CallVeroQA (antes CallAIbrate, y antes CallQA AI): qué pasó, en
+> qué orden, y qué se cambió antes de cada rebrand.
 >
-> **Este es el único documento del repositorio donde aparecen el nombre anterior
-> del producto y la identidad visual anterior.** Se nombran porque así era
+> **Este es el único documento del repositorio donde aparecen los nombres anteriores
+> del producto y la identidad visual anterior** (salvo los identificadores técnicos
+> que los conservan a propósito, listados en `ACUERDOS.md` A-01). Se nombran porque así era
 > entonces. Reescribirlos dejaría frases falsas —«identidad de marca X en toda la
 > app» nunca fue mentira cuando se escribió— y borrarlos dejaría la historia sin
 > sentido. Nada de lo que hay aquí es estado actual: para eso están
@@ -56,6 +57,7 @@
 | **9 sep** | **El producto empieza a calibrar.** Hasta aquí la IA puntuaba y su palabra era definitiva. Ahora una persona puede revisar la nota —sin pisar la de la IA—, puntuar a ciegas y ver en qué criterios discrepan más. Es lo que da sentido al nombre. |
 | **9 sep** | **Se cierra el ciclo.** El asesor puede responder a su evaluación y pedir revisión; el panel del jefe abre con «a quién escuchar hoy y por qué» en vez de con medias. |
 | **11 sep** | **Pasada de diseño.** Dos revisiones con skills de terceros sobre la interfaz ya terminada. Aparecen dos cosas que llevaban ahí desde el principio y nadie había visto: no existía una capa de tokens de movimiento —cada componente inventaba su duración— y **ningún botón de la aplicación respondía al pulsarlo**. Se corrigen esas y doce cosas más, ninguna de lógica. |
+| **21 sep** | **El producto pasa de "CallAIbrate" a "CallVeroQA".** *CallAIbrate* obligaba a explicar el juego de palabras; *CallVeroQA* (Call · Vero · QA) se entiende a la primera. Tagline nuevo: «Calidad verificada en cada llamada». Solo cambian nombre, wordmark y copy: paleta, tipografía y símbolo se quedan. La infraestructura desplegada conserva por ahora el nombre `callaibrate`. |
 
 ---
 

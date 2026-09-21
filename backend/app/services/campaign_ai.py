@@ -13,7 +13,7 @@ from app.prompts.campaign import build_assist_prompt, build_extraction_prompt
 from app.schemas.campaign import CAMPAIGN_FIELD_GUIDE, LIST_FIELDS
 from app.services.analysis_service import get_analysis_provider
 
-logger = logging.getLogger("callaibrate.campaigns")
+logger = logging.getLogger("callveroqa.campaigns")
 
 # Claves válidas de la nota de producto (las que devuelve la IA).
 _FIELD_KEYS = [key for key, _ in CAMPAIGN_FIELD_GUIDE]

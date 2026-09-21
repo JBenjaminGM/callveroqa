@@ -9,7 +9,7 @@
 
   Uso:
     # primera vez (crea el repo local + remoto):
-    ./ops/publish-clean.ps1 -RemoteUrl "https://github.com/JBenjaminGM/callqa.git" -Message "CallAIbrate"
+    ./ops/publish-clean.ps1 -RemoteUrl "https://github.com/JBenjaminGM/callqa.git" -Message "CallVeroQA"
     # siguientes veces:
     ./ops/publish-clean.ps1 -Message "Mejoras en el dashboard"
 #>

@@ -1,4 +1,4 @@
-"""Esquema inicial de CallAIbrate
+"""Esquema inicial de CallVeroQA
 
 Revision ID: 0001
 Revises:

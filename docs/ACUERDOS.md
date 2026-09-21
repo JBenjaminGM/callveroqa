@@ -18,18 +18,27 @@
 
 ## Producto y marca
 
-### A-01 · El producto se llama CallAIbrate
-**Qué acordamos.** El nombre se escribe siempre `CallAIbrate`, con "AI" en mayúsculas y
-resaltado en color `rust` en la interfaz. La fuente de verdad de la marca es
-[`BRAND.md`](BRAND.md); [`DESIGN.md`](DESIGN.md) explica cómo se aplica.
+### A-01 · El producto se llama CallVeroQA
+**Qué acordamos.** El nombre se escribe siempre `CallVeroQA`, con el fragmento "Vero"
+resaltado en color `rust` en la interfaz. Tagline: "Calidad verificada en cada llamada."
+La fuente de verdad de la marca es [`BRAND.md`](BRAND.md); [`DESIGN.md`](DESIGN.md)
+explica cómo se aplica. Sustituye a **CallAIbrate** (septiembre de 2026).
 
-**Por qué.** Juego de palabras entre *Call*, *AI* y *Calibrate*: calibrar es ajustar un
-instrumento de medición con precisión, que es literalmente lo que hace el producto.
+**Por qué.** *CallAIbrate* obligaba a explicar el juego de palabras (Call · AI ·
+Calibrate). *CallVeroQA* se entiende a la primera: *Call* (llamada) + *Vero* (verdadero,
+verificado) + *QA* (el término que el sector ya usa). La paleta, la tipografía y el
+símbolo no cambiaron: solo el nombre y el tagline.
 
-**Coste de cambio.** 🟡 Otro rebrand completo son unos días: tokens de color, tipografías,
-wordmark, copy y documentación. La infraestructura ya no habría que tocarla. La identidad
-visual anterior está retirada; qué era y por qué se fue está en
-[`HISTORIA.md`](HISTORIA.md).
+**Qué conserva el nombre anterior.** La infraestructura desplegada (`callaibrate-api`,
+`callaibrate-db`, `callaibrate.vercel.app`, repositorio `callaibrate`) y la clave de
+tema `callaibrate-theme` de localStorage. Renombrar la infraestructura exige tocar los
+paneles de Render y Vercel y cambia las URLs públicas: es un paso aparte, a decidir. Los
+emails sembrados sí pasan a `@callveroqa.com`; el seed **renombra** las cuentas
+`@callaibrate.com` existentes en vez de duplicarlas.
+
+**Coste de cambio.** 🟢 Otro cambio de nombre sin tocar la identidad visual son horas:
+copy, wordmark, emails del seed y documentación. Qué identidades hubo antes y por qué se
+fueron está en [`HISTORIA.md`](HISTORIA.md).
 
 ---
 
@@ -53,12 +62,12 @@ cuando existan las tres firmas de [`COMPLIANCE_CHECKLIST.md`](COMPLIANCE_CHECKLI
 tuya y confirmado.**
 
 **Por qué.** Astro es excelente para páginas que son casi todo texto, porque envía muy poco
-código al navegador. CallAIbrate es lo contrario: un panel detrás de un login donde **las
+código al navegador. CallVeroQA es lo contrario: un panel detrás de un login donde **las
 trece pantallas son interactivas** —filtros, gráficas, reproductor de audio sincronizado—.
 Ninguna se puede servir como texto estático, así que la ventaja de Astro aquí es cero:
 acabarías usándolo como envoltorio de los mismos componentes React que ya existen.
 
-**Dónde sí encajaría Astro.** Una web pública de CallAIbrate (qué es, precios, contacto).
+**Dónde sí encajaría Astro.** Una web pública de CallVeroQA (qué es, precios, contacto).
 Eso sería un sitio aparte conviviendo con la app, no un reemplazo.
 
 **Coste de cambio.** 🔴 Rehacer enrutado, layouts, protección de sesión y carga de
@@ -289,5 +298,5 @@ Cosas que aún no hemos decidido y que tarde o temprano habrá que decidir:
 |---|---|---|
 | **D-1** | ¿Pasamos Render a plan de pago? | Resuelve de un golpe la caducidad de la base, el arranque lento y —con S3— los audios. |
 | **D-2** | ¿Activamos S3 para los audios? | Hoy se borran en cada despliegue. |
-| **D-3** | ¿Web pública de CallAIbrate? | Si la hay, ahí sí tiene sentido Astro (ver A-03). |
+| **D-3** | ¿Web pública de CallVeroQA? | Si la hay, ahí sí tiene sentido Astro (ver A-03). |
 | **D-4** | ¿Quién usa esto de verdad, y cuándo? | Define si hay que cerrar el checklist de Compliance o sigue siendo una demo. |

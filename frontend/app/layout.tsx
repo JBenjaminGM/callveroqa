@@ -27,8 +27,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'CallAIbrate',
-  description: 'Calibra la calidad de cada llamada con IA.',
+  title: 'CallVeroQA',
+  description: 'Calidad verificada en cada llamada.',
   icons: { icon: '/favicon.svg' },
 };
 

@@ -9,7 +9,7 @@
 
 ## En una frase
 
-CallAIbrate es una plataforma de control de calidad de llamadas con IA. **El destino es
+CallVeroQA es una plataforma de control de calidad de llamadas con IA. **El destino es
 un portafolio**, no vender el producto — eso decide todas las prioridades. Hemos
 ejecutado un plan de cinco fases nacido de una auditoría. **Están las cinco.**
 
@@ -116,7 +116,7 @@ La evaluación era un monólogo y el panel abría con medias, que no dicen qué 
 - **`HISTORIA.md`** absorbe la línea del tiempo (que se ha eliminado) y **las entradas del
   changelog anteriores al rebrand**, movidas tal cual, sin reescribir una coma:
   reescribirlas dejaría falsas frases que en su momento fueron ciertas.
-- El `CHANGELOG.md` vigente arranca en CallAIbrate y recoge ya las fases 0 a 3.
+- El `CHANGELOG.md` vigente arranca en CallVeroQA y recoge ya las fases 0 a 3.
 - `ACUERDOS.md` se queda solo con acuerdos vigentes: fuera el que era historia con
   formato de acuerdo, y dentro tres nuevos de las fases 2 y 3 (la nota de la IA no se
   sobrescribe, el acuse lo firma quien fue evaluado, la sesión ciega lo es en el
@@ -184,7 +184,7 @@ docker compose up -d --build
 
 App en <http://localhost:3000>, API en <http://localhost:8000/docs>.
 
-**Cuenta de demostración:** `demo@callaibrate.com` / `CallAIbrate-Demo-2026` (solo lectura).
+**Cuenta de demostración:** `demo@callveroqa.com` / `CallVeroQA-Demo-2026` (solo lectura).
 Las contraseñas de admin y jefe se generan al azar en cada base nueva y se imprimen una
 sola vez: `docker compose logs api | grep -A 8 CREDENCIALES`.
 

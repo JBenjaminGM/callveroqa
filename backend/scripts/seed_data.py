@@ -40,12 +40,15 @@ from app.utils.security import hash_password, verify_password  # noqa: E402
 
 # Cuentas de gestión de ejemplo. Las contraseñas se resuelven en tiempo de
 # ejecución (ver _resolve_password), nunca se escriben aquí.
-ADMIN_EMAIL = "admin@callaibrate.com"
-JEFE_EMAIL = "jefe@callaibrate.com"
+ADMIN_EMAIL = "admin@callveroqa.com"
+JEFE_EMAIL = "jefe@callveroqa.com"
 
-# Emails de la marca anterior. Si existe la cuenta vieja y no la nueva, se
+# Emails de las marcas anteriores. Si existe la cuenta vieja y no la nueva, se
 # renombra en vez de duplicarla: así conserva su historial y sus permisos.
+# Se recorren en orden, de la marca más reciente a la más antigua.
 LEGACY_EMAILS = {
+    "admin@callaibrate.com": ADMIN_EMAIL,
+    "jefe@callaibrate.com": JEFE_EMAIL,
     "admin@callqa.com": ADMIN_EMAIL,
     "jefe@callqa.com": JEFE_EMAIL,
 }

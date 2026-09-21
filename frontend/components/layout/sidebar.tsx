@@ -46,7 +46,7 @@ export function Sidebar() {
 
   return (
     <aside className="flex w-60 shrink-0 flex-col bg-[#2a2420] p-3 text-paper">
-      {/* Lockup de marca. El "AI" va en Rust; el resto hereda el color del texto. */}
+      {/* Lockup de marca. El "Vero" va en Rust; el resto hereda el color del texto. */}
       <div className="mb-6 px-2 pt-4 text-[#f5f1e8]">
         <Wordmark size="md" />
       </div>
@@ -79,7 +79,7 @@ export function Sidebar() {
       </nav>
 
       <p className="mt-auto px-3 pb-2 text-[11px] leading-snug text-[#f5f1e8]/45">
-        Calibra la calidad de cada llamada con IA.
+        Calidad verificada en cada llamada.
       </p>
     </aside>
   );

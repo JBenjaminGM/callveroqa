@@ -1,10 +1,26 @@
-# Changelog — CallAIbrate
+# Changelog — CallVeroQA
 
 Cambios relevantes. Formato: descripción (commit). Lo más nuevo arriba.
 
-> Arranca en el rebrand a CallAIbrate. Lo anterior está en
+> Arranca en el rebrand a CallAIbrate (hoy CallVeroQA). Lo anterior está en
 > [`HISTORIA.md`](HISTORIA.md), movido tal cual: nombra el producto y la identidad
 > visual de entonces porque así era. Es historia, no estado.
+
+## Rebrand: CallAIbrate → CallVeroQA
+
+El nombre anterior obligaba a explicar el juego de palabras. **CallVeroQA** = *Call* ·
+*Vero* (verdadero, verificado) · *QA*. Tagline: «Calidad verificada en cada llamada».
+Paleta, tipografía y símbolo no cambian.
+
+- `Wordmark`: `Call<Vero>QA`, con "Vero" en `rust` (antes "AI"). Login, sidebar,
+  metadatos, PDF, título de la API y `/health` usan el nombre nuevo.
+- `Cuentas sembradas`: `admin@` / `jefe@` / `demo@callveroqa.com`. El seed **renombra**
+  las cuentas `@callaibrate.com` existentes (conservan contraseña e historial; la demo
+  pública pasa a `CallVeroQA-Demo-2026`) en vez de duplicarlas.
+- `Loggers` y app de Celery: `callveroqa.*`.
+- **Sin tocar, a propósito:** servicios y URLs de Render/Vercel (`callaibrate-*`), el
+  repositorio, la clave `callaibrate-theme` de localStorage (cambiarla resetea el tema de
+  todos) y los identificadores `callqa` ya documentados. Ver `ACUERDOS.md` A-01.
 
 ## Pasada de diseño: capa de movimiento y suelo de calidad
 

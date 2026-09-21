@@ -12,7 +12,7 @@
 
 ## 1. Qué es
 
-**CallAIbrate**: plataforma web de **Quality Assurance automatizado con IA** para
+**CallVeroQA**: plataforma web de **Quality Assurance automatizado con IA** para
 call centers bancarios. Un manager sube audios de llamadas; la IA las
 **transcribe** (Groq Whisper large v3), **enmascara la PII** (best-effort) y las
 **analiza con un LLM** (Groq Llama 3.3 70B) contra una **rúbrica dinámica**, y
@@ -42,7 +42,7 @@ accionables y un **reporte PDF**. Sector: **banca**.
 - **Repo LIMPIO (público):** `github.com/JBenjaminGM/callqa` — copia derivada solo con código funcional + un `README.md` curado (sin `docs/`, `AGENTS.md`, `CLAUDE.md`, `ops/`; historial propio, sin rastro de autoría). Se genera con **`ops/publish-clean.ps1`** (ver §16). NO se trabaja ahí a mano.
 - **Frontend (Vercel):** https://callaibrate.vercel.app — dashboard con **rediseño premium de indicadores** (Fase 2).
 - **Backend (Render):** https://callaibrate-api.onrender.com (`/health`, `/docs`)
-- **Cuentas sembradas:** `admin@callaibrate.com` (admin), `jefe@callaibrate.com` (jefe) y un **asesor por cada ejecutivo demo** (el email del ejecutivo, p. ej. `maria@banco.com`). Las **contraseñas se generan al azar** en el primer seed y se imprimen **una sola vez** (`docker compose logs api`); se pueden fijar con `SEED_ADMIN_PASSWORD` / `SEED_JEFE_PASSWORD` / `SEED_ASESOR_PASSWORD`. El seed **rota** cualquier cuenta que aún use una de las contraseñas que llegaron a estar publicadas.
+- **Cuentas sembradas:** `admin@callveroqa.com` (admin), `jefe@callveroqa.com` (jefe) y un **asesor por cada ejecutivo demo** (el email del ejecutivo, p. ej. `maria@banco.com`). Las **contraseñas se generan al azar** en el primer seed y se imprimen **una sola vez** (`docker compose logs api`); se pueden fijar con `SEED_ADMIN_PASSWORD` / `SEED_JEFE_PASSWORD` / `SEED_ASESOR_PASSWORD`. El seed **rota** cualquier cuenta que aún use una de las contraseñas que llegaron a estar publicadas.
 - **Coste de operación: $0** (Groq gratis + tiers gratis de Vercel/Render).
 - **Workflows de GitHub Actions:** `keepalive.yml` (ping a `/health` cada 12 min; **falla y avisa** si no responde) y `backup-db.yml` (volcado diario con `pg_dump`; necesita el secreto `DATABASE_URL` con la *External Database URL* de Render).
 - **Ubicación de trabajo local:** `C:\Users\Benja\Documents\callqa-ai` (NO la copia de OneDrive — Docker falla desde OneDrive por archivos "solo en la nube").
@@ -144,7 +144,7 @@ frontend/
   types/index.ts       Tipos TS que reflejan la API
   components/brand/    logo.tsx — Waveform + Wordmark (única fuente del logotipo)
   public/favicon.svg   ícono waveform de la marca
-  app/globals.css      ★ COLORES CANÓNICOS (variables CSS CallAIbrate, modo claro+oscuro)
+  app/globals.css      ★ COLORES CANÓNICOS (variables CSS CallVeroQA, modo claro+oscuro)
   tailwind.config.ts   mapea los colores a las variables CSS
 docs/                  00–07 + DESIGN.md (especificación de origen; ver §12)
 .github/workflows/     keepalive.yml (ping a /health cada 12 min para mitigar el cold-start)
@@ -190,7 +190,7 @@ analítica global; helper `is_manager`); **asesor** solo ve **su propio rendimie
 
 - **Stack completo (Docker):** `cd C:\Users\Benja\Documents\callqa-ai && docker compose up -d --build`
   (5 servicios: postgres, redis, api, worker, frontend)
-  → app http://localhost:3000 · API http://localhost:8000/docs · login `admin@callaibrate.com` con la contraseña que imprime el seed (`docker compose logs api`).
+  → app http://localhost:3000 · API http://localhost:8000/docs · login `admin@callveroqa.com` con la contraseña que imprime el seed (`docker compose logs api`).
   Apagar: `docker compose down`.
 - **Tests backend (127):** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q`
   (el venv ya tiene `requirements.txt`; SQLite en memoria, sin red).
@@ -224,20 +224,20 @@ analítica global; helper `is_manager`); **asesor** solo ve **su propio rendimie
 - **Diarización (quién habla):** la hace el **LLM por contenido**; la heurística de pausas es solo fallback. Es aproximada en turnos ambiguos. Fiable de verdad = speaker-ID acústico (Azure Speech / pyannote).
 - **Rúbrica DINÁMICA:** editable con subcriterios activables y **categorías que se pueden añadir/eliminar**. `PUT /config/rubric` es **reemplazo completo** (crea/actualiza/borra; genera la clave con slug). El prompt construye `dimension_scores` con las claves reales → las categorías nuevas se puntúan solas. En el frontend, `dimensionLabel()` (lib/utils.ts) humaniza claves desconocidas.
 - **Dashboard:** filtros campaña/ejecutivo/fechas/periodo; endpoint `/dashboard/campaigns`. Las fechas se comparan con `datetime.utcnow()` (naïve) porque la BD guarda timestamps naïve — NO usar `datetime.now(timezone.utc)` ahí (rompía con un `TypeError`).
-- **Colores = identidad CallAIbrate:** la fuente de verdad de la **marca** es `docs/BRAND.md`; la **implementación** canónica es `frontend/app/globals.css` + `tailwind.config.ts`. `DESIGN.md` explica cómo se aplica. **Las identidades visuales anteriores están OBSOLETAS** (cuáles fueron, en `docs/HISTORIA.md`): si aparece una de sus paletas, tipografías o clases en el código, es deuda.
+- **Colores = identidad CallVeroQA:** la fuente de verdad de la **marca** es `docs/BRAND.md`; la **implementación** canónica es `frontend/app/globals.css` + `tailwind.config.ts`. `DESIGN.md` explica cómo se aplica. **Las identidades visuales anteriores están OBSOLETAS** (cuáles fueron, en `docs/HISTORIA.md`): si aparece una de sus paletas, tipografías o clases en el código, es deuda.
 - **Despliegue:** el arranque (migraciones+seed+uvicorn) vive en el **CMD del Dockerfile** (no en `render.yaml`) para evitar que Render parta mal el comando con comillas (daba exit 127).
 - **Cold-start:** ver §3 (keepalive + resiliencia en `lib/api.ts`).
 
-## 11. Diseño = identidad CallAIbrate
+## 11. Diseño = identidad CallVeroQA
 
-UI rebrandeada a **CallAIbrate**. Las identidades visuales anteriores quedaron
+UI rebrandeada a **CallVeroQA**. Las identidades visuales anteriores quedaron
 **obsoletas**; qué eran se cuenta en [`HISTORIA.md`](HISTORIA.md), que es el único
 sitio del repositorio donde se nombran.
 
 - **Fuente de verdad de la marca:** **`docs/BRAND.md`**. Cualquier cambio visual empieza ahí.
 - **Paleta:** **paper `#F5F1E8`** + **ink `#2A2420`** dominan; **rust `#B8441F`** es el acento de marca y **gold `#A67C27`** el secundario. `success`/`danger` son funcionales, no decorativos.
 - **Tipografía:** **Manrope** (titulares), **Inter** (cuerpo/UI), **IBM Plex Mono** (solo datos numéricos), vía `next/font/google`.
-- **Wordmark:** `frontend/components/brand/logo.tsx` (`<Waveform />`, `<Wordmark />`). El fragmento "AI" siempre en rust.
+- **Wordmark:** `frontend/components/brand/logo.tsx` (`<Waveform />`, `<Wordmark />`). El fragmento "Vero" siempre en rust.
 - **Radios:** `rounded-card` (8px) en contenedores, `rounded-control` (6px) en controles. `rounded-full` solo en avatares, puntos y barras. Las clases de forma de la identidad anterior ya no existen.
 - **Titulares en caso frase** con una palabra clave opcional en rust (`<span class="hl">`).
 - **Modo claro por defecto** + **modo oscuro derivado** (ver addendum de `BRAND.md`).
@@ -313,10 +313,10 @@ en estos y se eliminaron):
 | **`ARQUITECTURA.md`** | Cómo está construido, en lenguaje normal (para no técnicos) | ✅ |
 | **`ACUERDOS.md`** | Decisiones tomadas, motivo y coste de cambiarlas | ✅ |
 | **`HISTORIA.md`** | De dónde viene el proyecto: línea del tiempo y changelog anterior al rebrand | ✅ |
-| **`BRAND.md`** | **Fuente de verdad de la marca CallAIbrate** | ✅ canónico |
+| **`BRAND.md`** | **Fuente de verdad de la marca CallVeroQA** | ✅ canónico |
 | **`DESIGN.md`** | Cómo se implementa `BRAND.md` en la app | ✅ |
 | **`COMPLIANCE_CHECKLIST.md`** | Validaciones de Compliance/DPO/Seguridad previas a producción real | ✅ |
-| **`RENOMBRADO_INFRA.md`** | Cómo renombrar repos/servicios/dominios a CallAIbrate (pendiente, lo hace el usuario) | ✅ |
+| **`RENOMBRADO_INFRA.md`** | Cómo renombrar repos/servicios/dominios a CallVeroQA (pendiente, lo hace el usuario) | ✅ |
 | `00_INDICE.md` | Índice de la documentación | ✅ |
 | `../README.md` (raíz) | Landing del repo | ✅ |
 

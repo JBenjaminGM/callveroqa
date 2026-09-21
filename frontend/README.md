@@ -1,4 +1,4 @@
-# 🎨 CallAIbrate — Frontend
+# 🎨 CallVeroQA — Frontend
 
 Interfaz web de la plataforma de Quality Assurance automatizado para call centers
 del sector banca. Construida con **Next.js 14**, TypeScript y
@@ -20,7 +20,7 @@ se adaptan al rol:
 - **asesor:** solo ve su ficha, sus llamadas y su panel **"Mi rendimiento"**
   (`/mi-panel`); recibe los demás accesos bloqueados por guard de rol.
 
-Se conecta al backend de CallAIbrate mediante su API REST.
+Se conecta al backend de CallVeroQA mediante su API REST.
 
 ---
 
@@ -43,7 +43,7 @@ Se conecta al backend de CallAIbrate mediante su API REST.
 ## 3. Requisitos previos
 
 - **Node.js 18 o superior** — https://nodejs.org
-- El **backend de CallAIbrate** corriendo (local con Docker, o desplegado en Render).
+- El **backend de CallVeroQA** corriendo (local con Docker, o desplegado en Render).
 
 ---
 
@@ -73,8 +73,8 @@ Abre **http://localhost:3000**.
 
 | Rol | Email |
 |---|---|
-| admin | `admin@callaibrate.com` |
-| jefe | `jefe@callaibrate.com` |
+| admin | `admin@callveroqa.com` |
+| jefe | `jefe@callveroqa.com` |
 | asesor | el email del ejecutivo (p. ej. `maria@banco.com`) |
 
 > **Las contraseñas se generan al azar en el primer *seed* y se imprimen una sola
@@ -145,7 +145,7 @@ frontend/
 
 ---
 
-## 7. Sistema de diseño — identidad CallAIbrate
+## 7. Sistema de diseño — identidad CallVeroQA
 
 La fuente de verdad de la marca es **[`docs/BRAND.md`](../docs/BRAND.md)**. La
 implementación canónica del color son las variables CSS de `app/globals.css`,
@@ -155,7 +155,7 @@ mapeadas a Tailwind en `tailwind.config.ts`.
   acento de marca y **gold** (#A67C27) el secundario.
 - **Modo claro por defecto** + modo oscuro derivado; el toggle del header
   persiste la elección en `localStorage`.
-- **Sidebar** siempre en ink, con el wordmark en negativo y el "AI" en rust.
+- **Sidebar** siempre en ink, con el wordmark en negativo y el "Vero" en rust.
 - **Tipografía:** Manrope en titulares, Inter en cuerpo y UI, IBM Plex Mono
   **solo** para datos numéricos (scores, IDs, marcas de tiempo).
 - **Radios:** 8px en contenedores (`rounded-card`), 6px en controles

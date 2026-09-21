@@ -1,5 +1,5 @@
 ---
-name: CallAIbrate — Calibra la calidad de cada llamada con IA
+name: CallVeroQA — Calidad verificada en cada llamada
 colors:
   # --- Tokens de marca (fuente de verdad: docs/BRAND.md) ---
   ink: '#2a2420'
@@ -95,8 +95,8 @@ spacing:
 
 ## Marca y estilo
 
-El sistema de diseño implementa la identidad **CallAIbrate** bajo el tagline
-**"Calibra la calidad de cada llamada con IA"**. La personalidad es **editorial y
+El sistema de diseño implementa la identidad **CallVeroQA** bajo el tagline
+**"Calidad verificada en cada llamada"**. La personalidad es **editorial y
 sobria**: un lienzo cálido de papel (`paper`) con texto en tinta (`ink`), y dos únicos
 acentos de marca —**rust** (#b8441f) para lo importante y **gold** (#a67c27) como
 secundario—. Es el tono adecuado para una herramienta que evalúa el trabajo de
@@ -122,7 +122,7 @@ paleta derivada que invierte fondo y texto y aclara los acentos.
 
 La paleta se ancla en **paper** (#f5f1e8) como lienzo y **ink** (#2a2420) como texto y
 como fondo del lateral de navegación. **Rust** es el acento de marca: CTA, navegación
-activa, el "AI" del wordmark, la serie principal de un gráfico y el anillo de foco.
+activa, el "Vero" del wordmark, la serie principal de un gráfico y el anillo de foco.
 **Gold** es el secundario y también el color de alerta.
 
 - **Modo claro (predeterminado):** lienzo paper con tarjetas blancas de borde `#e2d9c8`.
@@ -183,8 +183,8 @@ logotipo en la app (no hay imágenes de marca en `public/` salvo el favicon):
   (`viewBox="0 0 72 40"`, geometría exacta de `BRAND.md`). La barra central va en
   `rust` y la última en `gold`; las demás heredan `currentColor`, de modo que el mismo
   SVG funciona sobre fondo claro y sobre el lateral oscuro.
-- **`<Wordmark size="sm|md|lg" />`** — símbolo + nombre. El fragmento **"AI" siempre en
-  rust**: es lo que hace legible el juego de palabras *Call · AI · Calibrate*.
+- **`<Wordmark size="sm|md|lg" />`** — símbolo + nombre. El fragmento **"Vero" siempre en
+  rust**: es lo que separa y hace legibles las tres piezas *Call · Vero · QA*.
 
 `public/favicon.svg` repite el waveform sobre un cuadrado paper con esquinas de 14px.
 

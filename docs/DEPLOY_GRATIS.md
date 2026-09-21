@@ -1,4 +1,4 @@
-# 🚀 Publicar CallAIbrate gratis (Vercel + Render + Groq)
+# 🚀 Publicar CallVeroQA gratis (Vercel + Render + Groq)
 
 Guía para dejar la plataforma **accesible desde cualquier ordenador**, **sin pagar nada**.
 
@@ -62,8 +62,8 @@ crean gratis con tu GitHub, sin tarjeta).
 2. Confirma que **CORS_ORIGINS** es tu URL exacta de Vercel
    (`https://callaibrate.vercel.app`, sin barra final). Guarda → se redepliega solo.
 3. Abre tu **URL de Vercel** y entra con una de las cuentas sembradas:
-   - **admin:** `admin@callaibrate.com`
-   - **jefe:** `jefe@callaibrate.com`
+   - **admin:** `admin@callveroqa.com`
+   - **jefe:** `jefe@callveroqa.com`
    - **asesor:** el email del ejecutivo (p. ej. `maria@banco.com`)
 
    Las contraseñas las genera el *seed* al azar y las imprime **una sola vez** en los

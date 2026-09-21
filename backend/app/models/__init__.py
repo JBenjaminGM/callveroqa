@@ -1,5 +1,5 @@
 """
-Modelos ORM de CallAIbrate.
+Modelos ORM de CallVeroQA.
 
 Se importan todos aquí para que Alembic los detecte automáticamente
 a través de Base.metadata.

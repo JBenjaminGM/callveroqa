@@ -1,6 +1,6 @@
-# 🎧 CallAIbrate
+# 🎧 CallVeroQA
 
-**Calibra la calidad de cada llamada con IA.** Plataforma de Quality Assurance
+**Calidad verificada en cada llamada.** Plataforma de Quality Assurance
 automatizado para call centers del sector banca. Monorepo: backend + frontend +
 documentación.
 
@@ -9,8 +9,8 @@ documentación.
 > la salvaguarda interna `X-Prototype-Notice`.)
 
 - 🌐 **En vivo:** https://callaibrate.vercel.app · API: https://callaibrate-api.onrender.com
-- 👀 **Demo sin instalar nada:** `demo@callaibrate.com` / `CallAIbrate-Demo-2026` (solo lectura, con 90 días de datos ya cargados).
-- 👤 **Cuentas de trabajo:** el seed crea `admin@callaibrate.com`, `jefe@callaibrate.com` y un asesor por cada ejecutivo demo. **Las contraseñas se generan al azar y se imprimen una sola vez**: léelas con `docker compose logs api`.
+- 👀 **Demo sin instalar nada:** `demo@callveroqa.com` / `CallVeroQA-Demo-2026` (solo lectura, con 90 días de datos ya cargados).
+- 👤 **Cuentas de trabajo:** el seed crea `admin@callveroqa.com`, `jefe@callveroqa.com` y un asesor por cada ejecutivo demo. **Las contraseñas se generan al azar y se imprimen una sola vez**: léelas con `docker compose logs api`.
 - 🎨 **Identidad de marca:** **[`docs/BRAND.md`](docs/BRAND.md)** (fuente de verdad del color, tipografía y tono).
 - 🤖 **¿Eres una IA o un dev nuevo?** → **[`docs/AGENTS.md`](docs/AGENTS.md)** (guía completa).
 - 📚 **Toda la documentación está en [`docs/`](docs/)** (índice: [`docs/00_INDICE.md`](docs/00_INDICE.md)).
@@ -58,7 +58,7 @@ dimensión + score global ponderado + recomendaciones accionables + **reporte PD
 - **Reproductor sincronizado:** el audio de la llamada se reproduce junto a la
   transcripción; al hacer clic en un segmento, el audio salta a ese momento.
 - **Exportación CSV** del reporte del equipo, con los filtros del dashboard.
-- **Identidad CallAIbrate:** paleta paper + ink con acentos rust y gold,
+- **Identidad CallVeroQA:** paleta paper + ink con acentos rust y gold,
   tipografías Manrope / Inter / IBM Plex Mono. Ver **[`docs/BRAND.md`](docs/BRAND.md)**.
 
 ---

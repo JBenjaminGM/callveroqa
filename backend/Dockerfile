@@ -1,5 +1,5 @@
 # ============================================================
-# CallAIbrate - Dockerfile multi-stage
+# CallVeroQA - Dockerfile multi-stage
 # ============================================================
 
 # ---- Etapa 1: builder (instala dependencias) ----

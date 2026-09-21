@@ -1,7 +1,7 @@
 # Checklist de Compliance, DPO y Seguridad
 
 > **Qué es esto.** La lista de comprobaciones que deben quedar cerradas **antes** de
-> usar CallAIbrate con grabaciones reales de clientes de un banco. Hoy la plataforma
+> usar CallVeroQA con grabaciones reales de clientes de un banco. Hoy la plataforma
 > es funcional pero **no está aprobada** para ese uso.
 >
 > Cada ítem lleva responsable y la evidencia que hay que archivar. Un ítem sin

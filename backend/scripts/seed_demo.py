@@ -55,8 +55,11 @@ from app.utils.security import hash_password  # noqa: E402
 # Cuenta de demostración pública. Su contraseña se publica a propósito en el
 # README: es de solo lectura, así que compartirla no compromete nada. Solo
 # existe si se pide el seed de demostración, nunca en un despliegue normal.
-DEMO_EMAIL = "demo@callaibrate.com"
-DEMO_PASSWORD = os.getenv("SEED_DEMO_PASSWORD", "CallAIbrate-Demo-2026")
+DEMO_EMAIL = "demo@callveroqa.com"
+DEMO_PASSWORD = os.getenv("SEED_DEMO_PASSWORD", "CallVeroQA-Demo-2026")
+# Cuenta demo de la marca anterior: se renombra (con la contraseña nueva) en vez
+# de dejar dos cuentas públicas.
+LEGACY_DEMO_EMAIL = "demo@callaibrate.com"
 
 DIAS_DE_HISTORIAL = 90
 LLAMADAS_OBJETIVO = 70
@@ -88,6 +91,13 @@ GUIONES_POR_EJECUTIVO = {
 def crear_usuario_demo(db) -> None:
     """Crea (o repara) la cuenta de demostración de solo lectura."""
     demo = db.scalar(select(User).where(User.email == DEMO_EMAIL))
+    if demo is None:
+        legacy = db.scalar(select(User).where(User.email == LEGACY_DEMO_EMAIL))
+        if legacy is not None:
+            legacy.email = DEMO_EMAIL
+            legacy.password_hash = hash_password(DEMO_PASSWORD)
+            demo = legacy
+            print(f"[demo] Cuenta {LEGACY_DEMO_EMAIL} renombrada a {DEMO_EMAIL} / {DEMO_PASSWORD}")
     if demo is None:
         db.add(
             User(
@@ -199,7 +209,7 @@ def sembrar_revisiones(db, rng, pesos: dict[str, float]) -> int:
     Añade revisiones humanas sobre una parte de las llamadas ya creadas.
 
     Sin esto el panel de calibración abre vacío, que es la peor manera de
-    enseñar precisamente la función que da nombre al producto.
+    enseñar precisamente la función que distingue al producto.
     """
     if db.scalar(select(Review).limit(1)) is not None:
         return 0

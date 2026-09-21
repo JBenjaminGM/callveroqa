@@ -21,7 +21,7 @@ import httpx
 
 from app.config import settings
 
-logger = logging.getLogger("callaibrate.analysis")
+logger = logging.getLogger("callveroqa.analysis")
 
 TIMEOUT_SECONDS = 60.0
 MAX_RETRIES = 3

@@ -2,7 +2,7 @@
 
 /**
  * Primitivas de visualización de datos: nivel "BI premium" pero fiel a la
- * identidad CallAIbrate (plano, geométrico, paleta paper/ink + acentos rust y gold).
+ * identidad CallVeroQA (plano, geométrico, paleta paper/ink + acentos rust y gold).
  *
  * Todo usa variables CSS de globals.css para tema claro/oscuro automático.
  */

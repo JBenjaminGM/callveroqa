@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.models.analysis import Analysis
 from app.models.call import Call, CallStatus
 
-logger = logging.getLogger("callaibrate.calls")
+logger = logging.getLogger("callveroqa.calls")
 
 # Progreso aproximado (%) asociado a cada estado, para el polling del frontend.
 STATUS_PROGRESS = {

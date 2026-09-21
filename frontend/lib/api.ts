@@ -4,7 +4,7 @@ import axios, { AxiosError, type AxiosRequestConfig } from 'axios';
 import { getToken, useAuthStore } from '@/lib/auth';
 
 /**
- * Instancia de Axios configurada para hablar con el backend de CallAIbrate.
+ * Instancia de Axios configurada para hablar con el backend de CallVeroQA.
  *
  * - Añade automáticamente el token JWT en cada petición.
  * - Reintenta ante un "cold start" del backend (Render plan gratis se duerme y

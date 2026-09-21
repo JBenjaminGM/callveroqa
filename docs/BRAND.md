@@ -1,4 +1,4 @@
-# CallAIbrate — Guía de marca
+# CallVeroQA — Guía de marca
 
 > Fuente de verdad de la marca. Reemplaza toda referencia a las identidades
 > anteriores, que están retiradas y solo se describen en
@@ -6,15 +6,20 @@
 
 ## Nombre y concepto
 
-**CallAIbrate** — juego de palabras entre *Call*, *AI* y *Calibrate*. El significado
-real de "calibrar" (ajustar un instrumento de medición con precisión) describe lo
-que hace el producto: mide y ajusta la calidad de cada llamada con IA.
+**CallVeroQA** — tres piezas que se leen solas: *Call* (la llamada), *Vero*
+(del latín *verus*, "verdadero": lo que se comprueba es cierto) y *QA* (Quality
+Assurance, el término que ya usa cualquier call center). Dice qué es el producto
+sin explicar un juego de palabras: **verificar la calidad de cada llamada**.
+Sustituye a CallAIbrate (septiembre de 2026), cuyo juego *Call · AI · Calibrate*
+había que explicar. La función de **calibración** (acuerdo IA-humano) conserva su
+nombre: es un concepto de QA, no de marca.
 
-**Tagline:** "Calibra la calidad de cada llamada con IA."
+**Tagline:** "Calidad verificada en cada llamada."
 
-En texto, el nombre siempre se escribe `CallAIbrate` (con "AI" en mayúsculas). En
-UI, el fragmento "AI" se resalta en el color de acento (`rust`) y el resto en el
-color de texto principal.
+En texto, el nombre siempre se escribe `CallVeroQA` (C, V, Q y A en mayúsculas,
+todo junto). En UI, el fragmento "Vero" se resalta en el color de acento (`rust`)
+y el resto en el color de texto principal: así se separan visualmente las tres
+piezas.
 
 ## Color
 
@@ -25,7 +30,7 @@ color de texto principal.
 | `paper` | `#F5F1E8` | Fondo general |
 | `surface` | `#FFFFFF` | Tarjetas, superficies |
 | `border` | `#E2D9C8` | Divisores, bordes |
-| `rust` | `#B8441F` | Acento de marca, CTA, "AI" del wordmark |
+| `rust` | `#B8441F` | Acento de marca, CTA, "Vero" del wordmark |
 | `rust-soft` | `#F0DAC9` | Fondos de badges/hover sobre rust |
 | `gold` | `#A67C27` | Acento secundario, estado de alerta |
 | `gold-soft` | `#EFE2C4` | Fondos de badges sobre gold |

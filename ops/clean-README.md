@@ -1,14 +1,14 @@
-# CallAIbrate
+# CallVeroQA
 
-**Calibra la calidad de cada llamada con IA.**
+**Calidad verificada en cada llamada.**
 
-Un jefe de campaña sube las grabaciones de su equipo. CallAIbrate las transcribe, las
+Un jefe de campaña sube las grabaciones de su equipo. CallVeroQA las transcribe, las
 evalúa contra una rúbrica configurable y devuelve una nota del 0 al 100 con
 recomendaciones concretas. Lo que antes exigía escuchar llamada por llamada —y en la
 práctica se hacía sobre el 1 o 2% de ellas— se hace sobre el 100%.
 
 🌐 **Demo en vivo:** <https://callaibrate.vercel.app>
-Entra con **`demo@callaibrate.com`** / **`CallAIbrate-Demo-2026`** — cuenta de solo
+Entra con **`demo@callveroqa.com`** / **`CallVeroQA-Demo-2026`** — cuenta de solo
 lectura, con 90 días de datos de ejemplo ya cargados.
 
 > El backend está en un plan gratuito y se duerme con la inactividad: la primera visita
@@ -28,7 +28,7 @@ objeciones y sentimiento del cliente.
 **Explica la nota.** Cada llamada trae un resumen, la puntuación de cada criterio y
 recomendaciones accionables con su prioridad — no un número suelto.
 
-**Y calibra: comprueba que la IA puntúa bien.** Es lo que da nombre al producto y lo que
+**Y calibra: comprueba que la IA puntúa bien.** Es lo que hace creíble la nota y lo que
 casi ningún sistema de este tipo hace. El jefe puntúa una llamada **sin ver la nota de la
 IA** —la ceguera está en el servidor: el score ni siquiera se envía al navegador— y al
 guardar se revelan las dos. **La nota de la IA nunca se sobrescribe**: conviven, y de su

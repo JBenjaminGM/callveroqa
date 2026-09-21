@@ -1,5 +1,5 @@
 # ============================================================
-# CallAIbrate — Stack completo (monorepo)
+# CallVeroQA — Stack completo (monorepo)
 # Levanta backend + worker + base de datos + frontend con un solo comando:
 #
 #     docker compose up --build

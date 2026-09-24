@@ -28,6 +28,11 @@ def authenticate_user(db: Session, email: str, password: str) -> User | None:
         logger.info("Intento de login con contraseña incorrecta: %s", email)
         return None
 
+    # Una cuenta dada de baja conserva su historial pero no vuelve a entrar.
+    if not user.active:
+        logger.info("Intento de login de una cuenta desactivada: %s", email)
+        return None
+
     user.last_login = datetime.now(timezone.utc)
     db.commit()
     logger.info("Login correcto del usuario id=%s", user.id)

@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type {
+  AccountUser,
   Acknowledgement,
   AcknowledgementInput,
   Agent,
@@ -25,6 +26,7 @@ import type {
   CampaignDraft,
   CampaignExtractResult,
   CampaignKpi,
+  CreatedUser,
   DashboardAlert,
   DashboardSummary,
   ListenSuggestion,
@@ -662,6 +664,71 @@ export function useWhoToListen(filters: ListenFilters) {
         { params: filters },
       );
       return data;
+    },
+  });
+}
+
+/* ------------------------------ Cuentas ------------------------------- */
+
+export function useUsers() {
+  return useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const { data } = await api.get<AccountUser[]>('/users');
+      return data;
+    },
+  });
+}
+
+export function useCreateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: {
+      email: string;
+      name: string;
+      role: string;
+      agent_id?: number | null;
+      password?: string;
+    }) => {
+      const { data } = await api.post<CreatedUser>('/users', payload);
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+  });
+}
+
+export function useUpdateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...payload
+    }: { id: number } & Partial<Pick<AccountUser, 'name' | 'role' | 'active' | 'agent_id'>>) => {
+      const { data } = await api.patch<AccountUser>(`/users/${id}`, payload);
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+  });
+}
+
+export function useResetUserPassword() {
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { data } = await api.post<{ password: string }>(
+        `/users/${id}/reset-password`,
+      );
+      return data.password;
+    },
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: async (payload: {
+      current_password: string;
+      new_password: string;
+    }) => {
+      await api.post('/auth/change-password', payload);
     },
   });
 }

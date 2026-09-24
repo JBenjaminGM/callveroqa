@@ -23,10 +23,11 @@ from app.routers import (
     auth,
     calibration,
     calls,
-    coaching,
     campaigns,
+    coaching,
     config,
     dashboard,
+    users,
 )
 
 # Salvaguarda interna: recuerda que el entorno es de evaluación.
@@ -161,4 +162,5 @@ app.include_router(calls.router, prefix=API_PREFIX)
 app.include_router(dashboard.router, prefix=API_PREFIX)
 app.include_router(config.router, prefix=API_PREFIX)
 app.include_router(calibration.router, prefix=API_PREFIX)
+app.include_router(users.router, prefix=API_PREFIX)
 app.include_router(coaching.router, prefix=API_PREFIX)

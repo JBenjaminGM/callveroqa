@@ -398,6 +398,9 @@ export interface CampaignKpi {
   score_delta?: number | null;
   red_calls: number;
   red_pct: number;
+  /** Suspendidas por criterio crítico (auto-fail). */
+  critical_calls: number;
+  critical_pct: number;
   sentiment?: number | null;
   avg_duration_seconds?: number | null;
 }
@@ -506,4 +509,23 @@ export interface AppSettings {
   qa_red_call_threshold?: number;
   qa_min_calls_ranking?: number;
   qa_trend_drop_alert?: number;
+}
+
+/** Una cuenta tal como la ve un administrador en la pantalla de usuarios. */
+export interface AccountUser {
+  id: number;
+  name: string;
+  email: string;
+  role: 'admin' | 'jefe' | 'asesor' | string;
+  agent_id?: number | null;
+  active: boolean;
+  is_readonly: boolean;
+  created_at?: string | null;
+  last_login?: string | null;
+}
+
+/** Alta de cuenta: la contraseña generada solo viaja en esta respuesta. */
+export interface CreatedUser {
+  user: AccountUser;
+  generated_password?: string | null;
 }

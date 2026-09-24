@@ -14,6 +14,7 @@ const MANAGER_ONLY = [
   '/settings',
   '/calls/new',
   '/calibracion',
+  '/usuarios',
 ];
 
 function isManagerOnly(path: string): boolean {

@@ -11,6 +11,8 @@ import {
   UploadCloud,
   Gauge,
   Scale,
+  UserCog,
+  CircleUser,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { isManager, useAuthStore } from '@/lib/auth';
@@ -24,13 +26,16 @@ const MANAGER_NAV = [
   { href: '/calibracion', label: 'Calibración', icon: Scale },
   { href: '/agents', label: 'Ejecutivos', icon: Users },
   { href: '/campaigns', label: 'Campañas', icon: Megaphone },
+  { href: '/usuarios', label: 'Usuarios', icon: UserCog },
   { href: '/settings', label: 'Configuración', icon: Settings },
+  { href: '/mi-cuenta', label: 'Mi cuenta', icon: CircleUser },
 ];
 
 // Navegación del asesor (solo su rendimiento y sus llamadas).
 const ASESOR_NAV = [
   { href: '/mi-panel', label: 'Mi rendimiento', icon: Gauge },
   { href: '/calls', label: 'Mis llamadas', icon: Phone },
+  { href: '/mi-cuenta', label: 'Mi cuenta', icon: CircleUser },
 ];
 
 /**

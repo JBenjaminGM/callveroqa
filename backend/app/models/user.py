@@ -2,7 +2,15 @@
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, false as sa_false, func
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    String,
+    false as sa_false,
+    func,
+    true as sa_true,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -37,6 +45,11 @@ class User(Base):
     # Pensada para la cuenta de demostración pública.
     is_readonly: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default=sa_false(), nullable=False
+    )
+    # Cuenta activa. Dar de baja no borra: el historial de esa persona sigue
+    # explicando los datos, pero la cuenta ya no puede entrar.
+    active: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default=sa_true(), nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     last_login: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

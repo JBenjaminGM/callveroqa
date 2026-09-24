@@ -72,6 +72,9 @@ class CampaignKpiOut(BaseModel):
     score_delta: float | None = None
     red_calls: int
     red_pct: float
+    # Suspendidas por criterio crítico (auto-fail): riesgo normativo de la campaña.
+    critical_calls: int = 0
+    critical_pct: float = 0.0
     sentiment: float | None = None
     avg_duration_seconds: float | None = None
 

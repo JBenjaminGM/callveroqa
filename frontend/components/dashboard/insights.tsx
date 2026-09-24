@@ -11,6 +11,7 @@ import {
   Gauge,
   MessageSquare,
   Mic,
+  OctagonX,
   Repeat,
   ShieldAlert,
   ShieldCheck,
@@ -41,6 +42,7 @@ const ALERT_META: Record<
   string,
   { color: string; icon: typeof AlertTriangle; tone: string }
 > = {
+  critical_failure: { color: 'var(--danger)', icon: OctagonX, tone: 'suspendida' },
   red_call: { color: 'var(--danger)', icon: AlertTriangle, tone: 'banda roja' },
   low_agent: { color: 'var(--warning)', icon: UserMinus, tone: 'bajo umbral' },
   trend_drop: { color: 'var(--warning)', icon: TrendingDown, tone: 'tendencia' },
@@ -160,6 +162,7 @@ export function CampaignKpiTable({ rows }: { rows: CampaignKpi[] }) {
               <th className="w-[34%] pb-1 pr-3 font-semibold">Score QA</th>
               <th className="pb-1 pr-3 font-semibold">Δ</th>
               <th className="pb-1 pr-3 font-semibold">% rojas</th>
+              <th className="pb-1 pr-3 font-semibold">Suspend.</th>
               <th className="pb-1 font-semibold">Sentim.</th>
             </tr>
           </thead>
@@ -195,6 +198,20 @@ export function CampaignKpiTable({ rows }: { rows: CampaignKpi[] }) {
                   >
                     {r.red_pct}%
                   </span>
+                </td>
+                <td className="py-1.5 pr-3">
+                  {r.critical_calls > 0 ? (
+                    <span
+                      className="inline-flex items-center gap-1 font-mono font-semibold tabular-nums"
+                      style={{ color: 'var(--danger)' }}
+                      title={`${r.critical_calls} llamada(s) suspendidas por criterio crítico`}
+                    >
+                      <OctagonX size={12} aria-hidden />
+                      {r.critical_pct}%
+                    </span>
+                  ) : (
+                    <span className="font-mono tabular-nums text-text-muted">0%</span>
+                  )}
                 </td>
                 <td className="py-1.5">
                   {r.sentiment != null ? (

@@ -211,6 +211,9 @@ def by_campaign(
         scores = [a.global_score for _, a in group]
         avg = round(sum(scores) / len(scores), 1)
         red = sum(1 for s in scores if s < red_threshold)
+        # Suspendidas por criterio crítico: es la cifra de riesgo normativo de
+        # la campaña, y no se lee en la media (una suspendida ya cuenta como 0).
+        criticas = sum(1 for _, a in group if a.critical_failures)
         prev_group = previous.get(name, [])
         prev_avg = (
             sum(a.global_score for _, a in prev_group) / len(prev_group)
@@ -225,6 +228,8 @@ def by_campaign(
                 "score_delta": round(avg - prev_avg, 1) if prev_avg is not None else None,
                 "red_calls": red,
                 "red_pct": round(red / len(group) * 100, 1),
+                "critical_calls": criticas,
+                "critical_pct": round(criticas / len(group) * 100, 1),
                 "sentiment": sentiment_average(group),
                 "avg_duration_seconds": avg_duration_seconds(group),
             }
@@ -347,9 +352,49 @@ def build_alerts(
                 }
             )
 
-    # --- 3: llamadas en banda roja (las más recientes, individuales) ---
+    # --- 3a: suspendidas por criterio crítico ---
+    # Van antes y aparte de la banda roja: su nota es 0 por regla, no por
+    # calidad, y lo que hay que mirar es el incumplimiento, no el número.
+    criticas = sorted(
+        [(c, a) for c, a in rows if a.critical_failures],
+        key=lambda ca: ca[0].created_at,
+        reverse=True,
+    )
+    for call, analysis in criticas[:8]:
+        who = (
+            agent_names.get(call.agent_id)
+            or call.detected_agent_name
+            or "Sin identificar"
+        )
+        criterios = ", ".join(
+            f.get("criterion", "") for f in analysis.critical_failures if f.get("criterion")
+        )
+        alerts.append(
+            {
+                "type": "critical_failure",
+                "severity": "high",
+                "title": "Llamada suspendida por criterio crítico",
+                "description": (
+                    f"{who} · {criterios or 'criterio crítico'} "
+                    f"({call.campaign_type or 'Sin campaña'})."
+                ),
+                "agent_id": call.agent_id,
+                "agent_name": who,
+                "call_id": call.id,
+                "campaign": call.campaign_type,
+                # El valor ordena dentro de la severidad: la nota que habría
+                # tenido, para que primero salga la que más se jugaba.
+                "value": analysis.uncapped_score or 0,
+            }
+        )
+
+    # --- 3b: llamadas en banda roja (las más recientes, individuales) ---
     red_calls = sorted(
-        [(c, a) for c, a in rows if a.global_score < red_threshold],
+        [
+            (c, a)
+            for c, a in rows
+            if a.global_score < red_threshold and not a.critical_failures
+        ],
         key=lambda ca: ca[0].created_at,
         reverse=True,
     )

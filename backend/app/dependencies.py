@@ -52,6 +52,14 @@ def get_current_user(
     if user is None:
         raise error
 
+    # Una baja tiene que cerrar la puerta ya, no cuando caduque su token: se
+    # comprueba en cada petición, que es lo que hace real el "desactivar".
+    if not user.active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Esta cuenta está desactivada. Habla con un administrador.",
+        )
+
     # Cuentas de solo lectura (la demo pública): pueden consultarlo todo, pero
     # cualquier método que escriba se rechaza aquí. Al vivir en la dependencia
     # que ya usan todos los endpoints autenticados, no hay forma de saltárselo

@@ -21,6 +21,9 @@ class UserOut(BaseModel):
     role: str
     # Vínculo del asesor a su ficha de ejecutivo (None para admin/jefe).
     agent_id: int | None = None
+    # La UI las usa para ocultar lo que no se puede hacer antes de intentarlo.
+    is_readonly: bool = False
+    active: bool = True
     last_login: datetime | None = None
 
     model_config = {"from_attributes": True}

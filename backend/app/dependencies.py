@@ -10,7 +10,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.user import User
+from app.models.user import ROLE_ADMIN, User
 from app.utils.security import decode_access_token
 
 # Esquema de autenticación tipo "Bearer <token>".
@@ -74,6 +74,21 @@ def get_current_user(
         )
 
     return user
+
+
+def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    """
+    Exige rol de administrador.
+
+    Se reserva para lo irreversible —suprimir los datos de una persona—, que un
+    jefe de área no debería poder hacer por su cuenta.
+    """
+    if current_user.role != ROLE_ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acción reservada a administradores.",
+        )
+    return current_user
 
 
 def require_manager(current_user: User = Depends(get_current_user)) -> User:

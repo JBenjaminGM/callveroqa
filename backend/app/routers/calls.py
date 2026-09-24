@@ -43,7 +43,7 @@ from app.schemas.call import (
     CampaignRef,
     ConversationMetricsOut,
 )
-from app.services import call_service, campaign_service
+from app.services import call_service, campaign_service, retention_service
 from app.services.conversation_metrics_service import compute_conversation_metrics
 from app.services.call_service import STATUS_PROGRESS
 from app.services.name_matching import find_matching_agent, normalize_name
@@ -262,6 +262,9 @@ def list_calls(
     # Antes de listar se rescatan las que llevan demasiado tiempo procesándose:
     # es la pantalla donde se notaría, y así ninguna queda colgada para siempre.
     call_service.rescatar_atascadas(db)
+    # La política de retención se aplica sola aquí, como mucho cada seis horas:
+    # no hay cron en el plan gratuito y un hilo en la API sería peor.
+    retention_service.purge_if_due(db)
 
     # El asesor solo ve sus propias llamadas (se ignora cualquier agent_id pedido).
     if not current_user.is_manager:
@@ -398,6 +401,7 @@ def get_call(
         responsible=call.responsible,
         audio_url=call.audio_url,
         audio_filename=call.audio_filename,
+        audio_deleted_at=call.audio_deleted_at,
         duration_seconds=call.duration_seconds,
         status=call.status,
         language=call.language,
@@ -560,6 +564,17 @@ def get_call_audio(
     if call is None:
         raise HTTPException(status_code=404, detail="Llamada no encontrada.")
     _ensure_can_view_call(current_user, call)
+
+    if call.audio_deleted_at is not None:
+        # 410 y no 404: el audio existió y se borró a propósito. Decirlo evita
+        # que alguien lo lea como un fallo y vuelva a subir la llamada.
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE,
+            detail=(
+                "La grabación se borró por la política de retención de datos. "
+                "La transcripción y la evaluación siguen disponibles."
+            ),
+        )
 
     try:
         content = get_storage_provider().load(call.audio_url)

@@ -141,6 +141,9 @@ class CallDetailOut(BaseModel):
     responsible: str | None = None
     audio_url: str
     audio_filename: str | None = None
+    # Si la política de retención ya borró la grabación: la ficha lo explica en
+    # vez de ofrecer un reproductor que va a fallar.
+    audio_deleted_at: datetime | None = None
     duration_seconds: int | None = None
     status: CallStatus
     language: str

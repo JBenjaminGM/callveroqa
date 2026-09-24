@@ -75,6 +75,9 @@ class SettingsOut(BaseModel):
     qa_red_call_threshold: int = 60   # llamada en banda roja por debajo de esto
     qa_min_calls_ranking: int = 5     # mínimo de llamadas para entrar en rankings
     qa_trend_drop_alert: int = 5      # caída de score (puntos) que dispara alerta
+    # Días que se conservan las grabaciones. 0 = no caducan. La transcripción y
+    # la nota se conservan siempre: lo que caduca es la voz.
+    retention_audio_days: int = 0
 
 
 class SettingsUpdate(BaseModel):
@@ -86,3 +89,11 @@ class SettingsUpdate(BaseModel):
     qa_red_call_threshold: int | None = Field(default=None, ge=0, le=100)
     qa_min_calls_ranking: int | None = Field(default=None, ge=1, le=1000)
     qa_trend_drop_alert: int | None = Field(default=None, ge=0, le=100)
+    retention_audio_days: int | None = Field(default=None, ge=0, le=3650)
+
+
+class RetentionRunOut(BaseModel):
+    """Resultado de aplicar la política de retención a mano."""
+
+    retention_audio_days: int
+    audios_deleted: int

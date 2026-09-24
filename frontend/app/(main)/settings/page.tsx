@@ -11,6 +11,7 @@ import {
   Unlock,
 } from 'lucide-react';
 import {
+  useRunRetention,
   useRubric,
   useSettings,
   useUpdateRubric,
@@ -158,6 +159,12 @@ export default function SettingsPage() {
   const [qa, setQa] = useState<Record<string, number>>({});
   const [qaMsg, setQaMsg] = useState<string | null>(null);
 
+  // Retención de grabaciones: 0 = no caducan.
+  const [retencion, setRetencion] = useState(0);
+  const [retencionMsg, setRetencionMsg] = useState<string | null>(null);
+  const [aplicando, setAplicando] = useState(false);
+  const aplicarAhora = useRunRetention();
+
   useEffect(() => {
     if (rubric) {
       setDims(
@@ -186,6 +193,7 @@ export default function SettingsPage() {
         qa_min_calls_ranking: settings.qa_min_calls_ranking ?? 5,
         qa_trend_drop_alert: settings.qa_trend_drop_alert ?? 5,
       });
+      setRetencion(settings.retention_audio_days ?? 0);
     }
   }, [settings]);
 
@@ -327,6 +335,37 @@ export default function SettingsPage() {
       setQaMsg('Umbrales de QA actualizados.');
     } catch (err) {
       setQaMsg(getErrorMessage(err));
+    }
+  }
+
+  async function saveRetencion() {
+    setRetencionMsg(null);
+    try {
+      await updateSettings.mutateAsync({ retention_audio_days: retencion });
+      setRetencionMsg(
+        retencion === 0
+          ? 'Las grabaciones no caducarán.'
+          : `Las grabaciones se borrarán a los ${retencion} días.`,
+      );
+    } catch (err) {
+      setRetencionMsg(getErrorMessage(err));
+    }
+  }
+
+  async function aplicarRetencion() {
+    setRetencionMsg(null);
+    setAplicando(true);
+    try {
+      const borradas = await aplicarAhora.mutateAsync();
+      setRetencionMsg(
+        borradas === 0
+          ? 'No había grabaciones fuera de plazo.'
+          : `${borradas} grabación(es) borradas por haber pasado el plazo.`,
+      );
+    } catch (err) {
+      setRetencionMsg(getErrorMessage(err));
+    } finally {
+      setAplicando(false);
     }
   }
 
@@ -585,6 +624,53 @@ export default function SettingsPage() {
               </Button>
             </div>
             {qaMsg && <p className="mt-3 text-small text-success">{qaMsg}</p>}
+          </Card>
+
+          {/* Retención de grabaciones */}
+          <Card>
+            <CardTitle className="mb-1 flex items-center gap-2">
+              <Trash2 size={18} />
+              Retención de grabaciones
+            </CardTitle>
+            <p className="mb-4 text-small text-text-secondary">
+              Cuántos días se conservan los audios. Pasado ese plazo se borran
+              solos del almacenamiento y <strong>la transcripción y la evaluación
+              se conservan</strong>: lo que caduca es la voz, no la nota. Déjalo
+              en 0 para que no caduquen nunca.
+            </p>
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="w-56">
+                <Label htmlFor="retencion">Días de retención del audio</Label>
+                <Input
+                  id="retencion"
+                  type="number"
+                  min={0}
+                  max={3650}
+                  value={retencion}
+                  onChange={(e) => setRetencion(Number(e.target.value))}
+                />
+              </div>
+              <Button onClick={saveRetencion} disabled={updateSettings.isPending}>
+                {updateSettings.isPending ? <Spinner /> : <Save size={18} />}
+                Guardar política
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={aplicarRetencion}
+                disabled={retencion === 0 || aplicando}
+                title={
+                  retencion === 0
+                    ? 'Sin política que aplicar: los audios no caducan'
+                    : 'Borra ahora las grabaciones que ya pasaron del plazo'
+                }
+              >
+                {aplicando ? <Spinner /> : <Trash2 size={18} />}
+                Aplicar ahora
+              </Button>
+            </div>
+            {retencionMsg && (
+              <p className="mt-3 text-small text-success">{retencionMsg}</p>
+            )}
           </Card>
 
           {/* Información del sistema */}

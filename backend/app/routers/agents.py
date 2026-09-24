@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.dependencies import get_current_user, require_manager
+from app.dependencies import get_current_user, require_admin, require_manager
 from app.models.user import User
 from app.schemas.agent import (
     AgentCreate,
@@ -14,8 +14,9 @@ from app.schemas.agent import (
     AgentOut,
     AgentUpdate,
 )
+from app.schemas.agent import DataErasureOut
 from app.schemas.auth import UserOut
-from app.services import agent_service
+from app.services import agent_service, retention_service
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
@@ -135,3 +136,26 @@ def deactivate_agent(
         raise HTTPException(status_code=404, detail="Ejecutivo no encontrado.")
     agent_service.deactivate_agent(db, agent)
     return None
+
+
+@router.delete("/{agent_id}/data", response_model=DataErasureOut)
+def erase_agent_data(
+    agent_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """
+    Suprime **todo** lo de este ejecutivo: llamadas, audios, transcripciones,
+    análisis, revisiones y respuestas.
+
+    Es el derecho de supresión, y es irreversible. Reservado a administradores
+    y separado del borrado normal (`DELETE /agents/{id}`, que solo desactiva):
+    dar de baja a alguien del equipo y borrar su rastro no son la misma acción,
+    y confundirlas es como se pierden datos sin querer. La ficha se conserva
+    desactivada para que los agregados históricos no queden con un hueco.
+    """
+    agent = agent_service.get_agent(db, agent_id)
+    if agent is None:
+        raise HTTPException(status_code=404, detail="Ejecutivo no encontrado.")
+    resultado = retention_service.delete_agent_data(db, agent)
+    return DataErasureOut(agent_id=agent_id, **resultado)

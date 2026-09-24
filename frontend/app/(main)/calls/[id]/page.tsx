@@ -370,6 +370,7 @@ export default function CallDetailPage() {
                 callId={call.id}
                 transcription={call.transcription}
                 audioFilename={call.audio_filename}
+                audioDeletedAt={call.audio_deleted_at}
               />
             )}
 

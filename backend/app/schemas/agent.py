@@ -60,3 +60,11 @@ class AgentLoginCreate(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     name: str | None = Field(default=None, max_length=255)
+
+
+class DataErasureOut(BaseModel):
+    """Recuento de lo suprimido, para poder registrarlo donde haga falta."""
+
+    agent_id: int
+    calls_deleted: int
+    audios_deleted: int

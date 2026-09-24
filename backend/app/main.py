@@ -9,14 +9,21 @@ import json
 import logging
 import sys
 import time
+import uuid
+from contextvars import ContextVar
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
+from sqlalchemy import text
+
 from app.config import settings
+from sqlalchemy.orm import Session
+
+from app.database import get_db
 from app.limiter import limiter
 from app.routers import (
     agents,
@@ -35,6 +42,12 @@ PROTOTYPE_NOTICE = "Evaluation environment - Do not use with real customer data"
 
 
 # --- Logging estructurado en JSON ---
+# Identificador de la petición en curso. Un ContextVar y no un parámetro
+# porque tiene que llegar a logs escritos en cualquier capa (servicios, tareas)
+# sin arrastrarlo por toda la firma de las funciones.
+request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
+
+
 class JsonFormatter(logging.Formatter):
     """Formatea cada log como una línea JSON con el campo environment="evaluation"."""
 
@@ -46,6 +59,11 @@ class JsonFormatter(logging.Formatter):
             "message": record.getMessage(),
             "environment": "evaluation",
         }
+        # Permite seguir un error concreto: el usuario ve el id en la respuesta
+        # y con él se encuentran en el log todas las líneas de esa petición.
+        request_id = request_id_var.get()
+        if request_id:
+            log["request_id"] = request_id
         if record.exc_info:
             log["exception"] = self.formatException(record.exc_info)
         return json.dumps(log, ensure_ascii=False)
@@ -110,10 +128,17 @@ app.add_middleware(
 
 @app.middleware("http")
 async def add_prototype_header(request: Request, call_next):
-    """Añade el header de aviso de prototipo y loggea cada petición."""
+    """Marca la petición con un id, añade el aviso de prototipo y la loggea."""
     start = time.time()
-    response = await call_next(request)
+    # Se respeta el id del proxy si viene, para poder cruzar logs con Render.
+    request_id = request.headers.get("X-Request-ID") or uuid.uuid4().hex[:12]
+    token = request_id_var.set(request_id)
+    try:
+        response = await call_next(request)
+    finally:
+        request_id_var.reset(token)
     response.headers["X-Prototype-Notice"] = PROTOTYPE_NOTICE
+    response.headers["X-Request-ID"] = request_id
     elapsed_ms = round((time.time() - start) * 1000, 1)
     logger.info(
         "%s %s -> %s (%sms)",
@@ -128,11 +153,20 @@ async def add_prototype_header(request: Request, call_next):
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception):
     """Captura errores no controlados y devuelve un mensaje claro en español."""
+    request_id = request_id_var.get()
     logger.exception("Error no controlado en %s %s", request.method, request.url.path)
     return JSONResponse(
         status_code=500,
-        content={"detail": "Ocurrió un error interno. Inténtelo de nuevo más tarde."},
-        headers={"X-Prototype-Notice": PROTOTYPE_NOTICE},
+        content={
+            "detail": "Ocurrió un error interno. Inténtelo de nuevo más tarde.",
+            # Se devuelve para que quien reporte el fallo pueda decir cuál fue:
+            # con este id se encuentran en el log todas sus líneas.
+            "request_id": request_id,
+        },
+        headers={
+            "X-Prototype-Notice": PROTOTYPE_NOTICE,
+            **({"X-Request-ID": request_id} if request_id else {}),
+        },
     )
 
 
@@ -148,9 +182,23 @@ def root() -> dict:
 
 
 @app.get("/health", tags=["health"])
-def health() -> dict:
-    """Health check para Render (render.yaml healthCheckPath) y el keepalive de GitHub Actions."""
-    return {"status": "healthy"}
+def health(response: Response, db: Session = Depends(get_db)) -> dict:
+    """
+    Health check para Render (`healthCheckPath`) y el keepalive de GitHub Actions.
+
+    Comprueba **también la base de datos**: un proceso vivo que no puede
+    consultar nada está caído para el usuario, y esa diferencia es justo la que
+    dejó pasar dos meses de caída en producción sin que saltara ninguna alarma.
+    """
+    try:
+        # Con la sesión de la aplicación, no con un motor aparte: así se
+        # comprueba exactamente la conexión que usan los endpoints.
+        db.execute(text("SELECT 1"))
+        return {"status": "healthy", "database": "ok"}
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Health check: la base de datos no responde: %s", exc)
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        return {"status": "unhealthy", "database": "unreachable"}
 
 
 # --- Registro de routers de la API (todos bajo /api/v1) ---

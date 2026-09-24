@@ -44,6 +44,9 @@ class Call(Base):
     uploaded_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     audio_url: Mapped[str] = mapped_column(String(500), nullable=False)
     audio_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Cuándo borró la política de retención la grabación. La transcripción y la
+    # nota se conservan: lo que caduca es el audio, no la evaluación.
+    audio_deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
     file_size_bytes: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     language: Mapped[str] = mapped_column(String(10), default="es")

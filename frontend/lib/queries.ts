@@ -732,3 +732,17 @@ export function useChangePassword() {
     },
   });
 }
+
+/** Aplica la política de retención ahora y devuelve cuántas grabaciones borró. */
+export function useRunRetention() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post<{ audios_deleted: number }>(
+        '/config/retention/run',
+      );
+      return data.audios_deleted;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['calls'] }),
+  });
+}

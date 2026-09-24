@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { FileAudio } from 'lucide-react';
 import { api, getErrorMessage } from '@/lib/api';
-import { cn, formatDuration } from '@/lib/utils';
+import { cn, formatDate, formatDuration } from '@/lib/utils';
 import { Card, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/feedback';
 import type { Transcription } from '@/types';
@@ -35,8 +35,16 @@ export const TranscriptPlayer = forwardRef<
     callId: number;
     transcription: Transcription;
     audioFilename?: string | null;
+    /** Fecha en que la política de retención borró la grabación, si ya pasó. */
+    audioDeletedAt?: string | null;
   }
->(function TranscriptPlayer({ callId, transcription, audioFilename }, ref) {
+>(function TranscriptPlayer(
+  { callId, transcription, audioFilename, audioDeletedAt },
+  ref,
+) {
+  // Sin audio no hay nada que descargar ni que reproducir: la transcripción
+  // sigue siendo útil por sí sola.
+  const audioCaducado = Boolean(audioDeletedAt);
   const cardRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const activeRef = useRef<HTMLButtonElement | null>(null);
@@ -68,6 +76,8 @@ export const TranscriptPlayer = forwardRef<
     let objectUrl: string | null = null;
     let cancelled = false;
 
+    if (audioCaducado) return;
+
     async function load() {
       try {
         const res = await api.get(`/calls/${callId}/audio`, {
@@ -86,7 +96,7 @@ export const TranscriptPlayer = forwardRef<
       cancelled = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [callId]);
+  }, [callId, audioCaducado]);
 
   // Segmento que suena ahora. -1 si el audio no ha empezado o está en un silencio.
   const activeIndex = segments.findIndex(
@@ -118,7 +128,13 @@ export const TranscriptPlayer = forwardRef<
 
         {/* Reproductor */}
         <div className="mb-4">
-          {audioUrl ? (
+          {audioCaducado ? (
+            <p className="rounded-control bg-bg-accent px-3 py-2 text-small text-text-secondary">
+              La grabación se borró el {formatDate(audioDeletedAt as string)} por la
+              política de retención de datos. La transcripción y la evaluación se
+              conservan.
+            </p>
+          ) : audioUrl ? (
             <audio
               ref={audioRef}
               src={audioUrl}

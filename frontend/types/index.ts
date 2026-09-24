@@ -196,6 +196,8 @@ export interface CallDetail {
   responsible?: string | null;
   audio_url: string;
   audio_filename?: string | null;
+  /** Cuándo borró la política de retención la grabación (la nota se conserva). */
+  audio_deleted_at?: string | null;
   duration_seconds?: number | null;
   status: CallStatus;
   language: string;
@@ -509,6 +511,8 @@ export interface AppSettings {
   qa_red_call_threshold?: number;
   qa_min_calls_ranking?: number;
   qa_trend_drop_alert?: number;
+  /** Días que se conservan las grabaciones. 0 = no caducan. */
+  retention_audio_days?: number;
 }
 
 /** Una cuenta tal como la ve un administrador en la pantalla de usuarios. */

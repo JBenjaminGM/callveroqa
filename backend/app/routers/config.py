@@ -12,7 +12,9 @@ from app.database import get_db
 from app.dependencies import get_current_user, require_manager
 from app.models.settings import AppSettings, RubricConfig
 from app.models.user import User
+from app.services import retention_service
 from app.schemas.config import (
+    RetentionRunOut,
     RubricDimensionOut,
     RubricUpdateRequest,
     SettingsOut,
@@ -134,6 +136,7 @@ def get_settings_endpoint(
         ai_provider=app_config.ai_provider,
         whisper_provider=app_config.whisper_provider,
         **read_qa_thresholds(db),
+        retention_audio_days=retention_service.get_retention_days(db),
     )
 
 
@@ -153,3 +156,19 @@ def update_settings_endpoint(
             row.value = str(value)
     db.commit()
     return get_settings_endpoint(db=db, _=current_user)
+
+
+@router.post("/retention/run", response_model=RetentionRunOut)
+def run_retention(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_manager),
+):
+    """
+    Aplica ahora la política de retención en vez de esperar a la purga automática.
+
+    Existe porque "el audio se borra a los N días" hay que poder demostrarlo en
+    el momento, delante de quien lo pregunta.
+    """
+    dias = retention_service.get_retention_days(db)
+    borradas = retention_service.purge_expired_audio(db)
+    return RetentionRunOut(retention_audio_days=dias, audios_deleted=borradas)

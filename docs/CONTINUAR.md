@@ -19,17 +19,17 @@ Antes de tocar nada, lee **[`ARQUITECTURA.md`](ARQUITECTURA.md)** (cómo funcion
 ## Dónde trabajar
 
 ```
-C:\Users\Benja\Documents\callqa-ai\.claude\worktrees\laughing-kapitsa-5141df
+C:\Users\master\dev\callveroqa\.claude\worktrees\laughing-kapitsa-5141df
 ```
 
-Rama `claude/callqa-callibrate-redesign-036677`. **Es un worktree**: ejecuta todo desde
+Rama `claude/callveroqa-callibrate-redesign-036677`. **Es un worktree**: ejecuta todo desde
 ahí, no desde la raíz del repositorio.
 
 ## Estado exacto
 
 | | |
 |---|---|
-| Rama | `claude/callqa-callibrate-redesign-036677` |
+| Rama | `claude/callveroqa-callibrate-redesign-036677` |
 | Último en `origin/main` | `d50afb8` — suelo de calidad (IMPECCABLE) |
 | Sin subir | nada: **las cinco fases y las dos pasadas de diseño están desplegadas** |
 | Tests backend | **147**, todos en verde |
@@ -171,7 +171,7 @@ y la auditoría que lo originó en
 ## Cómo verificar que todo sigue bien
 
 ```bash
-cd backend && "C:/Users/Benja/Documents/callqa-ai/backend/.venv/Scripts/python.exe" -m pytest -q
+cd backend && "C:/Users/master/dev/callveroqa/backend/.venv/Scripts/python.exe" -m pytest -q
 ```
 
 ```bash
@@ -193,11 +193,11 @@ sola vez: `docker compose logs api | grep -A 8 CREDENCIALES`.
 ## Lo que te hará perder tiempo si no lo sabes
 
 1. **`.venv` y `node_modules` viven en el repositorio principal**, no en el worktree.
-   Para los tests usa el intérprete de `C:\Users\Benja\Documents\callqa-ai\backend\.venv`.
+   Para los tests usa el intérprete de `C:\Users\master\dev\callveroqa\backend\.venv`.
    Para el frontend hace falta `npm ci` dentro del worktree.
 2. **El stack Docker del repositorio principal ocupa el puerto 8000.** Si `docker compose
-   up` no arranca, párala: `docker stop callqa-ai-api-1 callqa-ai-worker-1
-   callqa-ai-postgres-1 callqa-ai-redis-1`.
+   up` no arranca, párala: `docker stop callveroqa-api-1 callveroqa-worker-1
+   callveroqa-postgres-1 callveroqa-redis-1`.
 3. **`npx next start` sobrevive a que se mate la tarea.** Si el navegador muestra una
    versión antigua, es que quedó un servidor huérfano en el 3000: mátalo por puerto antes
    de arrancar el nuevo build.

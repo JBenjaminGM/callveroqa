@@ -23,11 +23,11 @@ Esenciales:
 - **Roles:** `admin`/`jefe` (gestión + analítica global) y `asesor` (solo su rendimiento).
   `is_manager` / `require_manager` protegen lo de gestión.
 - **Campañas con nota de producto:** entidad `Campaign` (9 campos); se inyecta en el prompt.
-- **Trabajar en `C:\Users\Benja\Documents\callqa-ai`** (NO la copia de OneDrive).
+- **Trabajar en `C:\Users\master\dev\callveroqa`** (NO la copia de OneDrive).
 - **Tests:** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q` (147 tests). Migraciones 0001–0011.
 - **Desplegar:** `git push origin main` → Vercel + Render redepliegan solos. **`GROQ_API_KEY`
   en prod vive en el dashboard de Render (`sync: false`), no en el repo.**
-- **Dos repos:** privado `callqa-ai` (completo) + público `callqa` (código limpio). Publicar
+- **Dos repos:** privado `callveroqa` (completo) + público `callveroqa` (código limpio). Publicar
   el limpio: `ops/publish-clean.ps1` (ver AGENTS §16).
 - **Seed sin contraseñas fijas:** se generan al azar y se imprimen una vez
   (`docker compose logs api`); fijables con `SEED_ADMIN_PASSWORD` / `SEED_JEFE_PASSWORD` /
@@ -38,9 +38,9 @@ Esenciales:
   **Las identidades visuales anteriores están OBSOLETAS**: cuáles fueron y qué
   colores, tipografías y clases traían está en `docs/HISTORIA.md`. Si encuentras
   algo de eso en el código, es deuda; corrígelo contra `BRAND.md`.
-- **Infra renombrada** (septiembre 2026): Render sirve `callaibrate-api` +
-  `callaibrate-db`. Se pudo hacer sin migrar nada porque la PostgreSQL del plan
+- **Infra renombrada** (septiembre 2026): Render sirve `callveroqa-api` +
+  `callveroqa-db`. Se pudo hacer sin migrar nada porque la PostgreSQL del plan
   gratuito **había caducado** y los datos de producción ya se habían perdido.
-- **Dos identificadores conservan el nombre viejo a propósito:** el usuario/BD
-  `callqa` del `docker-compose.yml` local (renombrarlo invalida el volumen `pgdata`)
-  y la clave `callqa-auth` de localStorage (cambiarla cierra la sesión de todos).
+- **Renombrado total:** no queda ningún identificador con la marca anterior. Los
+  únicos restos vivos son los mapas de migración de emails del seed (`@callaibrate.com`,
+  `@callqa.com` → `@callveroqa.com`), que deben quedarse.

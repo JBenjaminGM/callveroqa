@@ -7,7 +7,7 @@ evalúa contra una rúbrica configurable y devuelve una nota del 0 al 100 con
 recomendaciones concretas. Lo que antes exigía escuchar llamada por llamada —y en la
 práctica se hacía sobre el 1 o 2% de ellas— se hace sobre el 100%.
 
-🌐 **Demo en vivo:** <https://callaibrate.vercel.app>
+🌐 **Demo en vivo:** <https://callveroqa.vercel.app>
 Entra con **`demo@callveroqa.com`** / **`CallVeroQA-Demo-2026`** — cuenta de solo
 lectura, con 90 días de datos de ejemplo ya cargados.
 

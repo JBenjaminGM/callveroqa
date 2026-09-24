@@ -1,5 +1,5 @@
 <#
-  publish-clean.ps1 - Publica una copia LIMPIA del repo al repositorio publico `callqa`.
+  publish-clean.ps1 - Publica una copia LIMPIA del repo al repositorio publico `callveroqa`.
 
   Toma el estado COMMITEADO de `main` del repo completo (privado) y lo espeja al
   repo limpio, quitando toda la documentacion/meta (docs/, *.md de metodologia,
@@ -9,12 +9,12 @@
 
   Uso:
     # primera vez (crea el repo local + remoto):
-    ./ops/publish-clean.ps1 -RemoteUrl "https://github.com/JBenjaminGM/callqa.git" -Message "CallVeroQA"
+    ./ops/publish-clean.ps1 -RemoteUrl "https://github.com/JBenjaminGM/callveroqa-public.git" -Message "CallVeroQA"
     # siguientes veces:
     ./ops/publish-clean.ps1 -Message "Mejoras en el dashboard"
 #>
 param(
-  [string]$CleanDir  = "C:\Users\Benja\Documents\callqa",
+  [string]$CleanDir  = "C:\Users\master\dev\callveroqa-public",
   [string]$RemoteUrl = "",
   [string]$Message   = "Actualizar plataforma",
   [switch]$NoPush
@@ -48,7 +48,7 @@ Get-ChildItem -Force $CleanDir | Where-Object { $_.Name -ne ".git" } |
   Remove-Item -Recurse -Force
 
 # 3) Exportar el estado commiteado de `main` del repo completo.
-$tar = Join-Path $env:TEMP "callqa-clean.tar"
+$tar = Join-Path $env:TEMP "callveroqa-clean.tar"
 git -C $Full archive --format=tar main -o $tar
 tar -xf $tar -C $CleanDir
 Remove-Item $tar -Force

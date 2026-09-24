@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 const themeScript = `
 (function () {
   try {
-    if (localStorage.getItem('callaibrate-theme') === 'dark') {
+    if (localStorage.getItem('callveroqa-theme') === 'dark') {
       document.documentElement.classList.add('dark');
     }
   } catch (e) {}

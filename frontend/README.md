@@ -51,7 +51,7 @@ Se conecta al backend de CallVeroQA mediante su API REST.
 
 ```bash
 # 1. Sitúate en la carpeta del proyecto
-cd callqa-ai/frontend
+cd callveroqa/frontend
 
 # 2. Copia el archivo de variables de entorno
 #    En Windows (PowerShell):  Copy-Item .env.local.example .env.local
@@ -89,7 +89,7 @@ Abre **http://localhost:3000**.
 
 El despliegue vigente es **Vercel** (frontend) + **Render** (backend), gratis ($0).
 Guía completa: [`../docs/DEPLOY_GRATIS.md`](../docs/DEPLOY_GRATIS.md). En vivo:
-https://callaibrate.vercel.app (API: https://callaibrate-api.onrender.com).
+https://callveroqa.vercel.app (API: https://callveroqa-api.onrender.com).
 
 1. Sube el repositorio a GitHub.
 2. Entra a https://vercel.com/new e importa el repositorio.
@@ -97,7 +97,7 @@ https://callaibrate.vercel.app (API: https://callaibrate-api.onrender.com).
 4. En **Environment Variables** añade la URL de tu backend en Render:
 
    ```
-   NEXT_PUBLIC_API_URL=https://callaibrate-api.onrender.com/api/v1
+   NEXT_PUBLIC_API_URL=https://callveroqa-api.onrender.com/api/v1
    ```
 
 5. Pulsa **Deploy**. En ~2 minutos tendrás una URL pública.

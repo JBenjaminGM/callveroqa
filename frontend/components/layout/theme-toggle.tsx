@@ -20,7 +20,7 @@ export function ThemeToggle() {
     const next = !isDark;
     setIsDark(next);
     document.documentElement.classList.toggle('dark', next);
-    localStorage.setItem('callaibrate-theme', next ? 'dark' : 'light');
+    localStorage.setItem('callveroqa-theme', next ? 'dark' : 'light');
   }
 
   return (

@@ -29,12 +29,17 @@ Calibrate). *CallVeroQA* se entiende a la primera: *Call* (llamada) + *Vero* (ve
 verificado) + *QA* (el término que el sector ya usa). La paleta, la tipografía y el
 símbolo no cambiaron: solo el nombre y el tagline.
 
-**Qué conserva el nombre anterior.** La infraestructura desplegada (`callaibrate-api`,
-`callaibrate-db`, `callaibrate.vercel.app`, repositorio `callaibrate`) y la clave de
-tema `callaibrate-theme` de localStorage. Renombrar la infraestructura exige tocar los
-paneles de Render y Vercel y cambia las URLs públicas: es un paso aparte, a decidir. Los
-emails sembrados sí pasan a `@callveroqa.com`; el seed **renombra** las cuentas
-`@callaibrate.com` existentes en vez de duplicarlas.
+**Nada conserva el nombre anterior.** El renombrado es total: repositorio
+(`callveroqa`), servicios de Render (`callveroqa-api`, `callveroqa-db`), dominio de
+Vercel (`callveroqa.vercel.app`), usuario y base local (`callveroqa`) y las claves de
+`localStorage` (`callveroqa-auth`, `callveroqa-theme`). Antes se conservaban por coste;
+la decisión se revisó y el coste se pagó de una vez. **Efectos secundarios aceptados:**
+cambiar `callveroqa-auth` cierra la sesión de todos los usuarios (vuelven a entrar) y
+`callveroqa-theme` resetea el tema; renombrar el usuario/base local invalida el volumen
+`pgdata` (`docker compose down -v` y volver a levantar). Los emails sembrados pasan a
+`@callveroqa.com` y el seed **renombra** las cuentas `@callaibrate.com` y `@callqa.com`
+existentes en vez de duplicarlas: esos dos mapas de migración son el único sitio del
+código donde sobreviven los nombres viejos, y deben quedarse.
 
 **Coste de cambio.** 🟢 Otro cambio de nombre sin tocar la identidad visual son horas:
 copy, wordmark, emails del seed y documentación. Qué identidades hubo antes y por qué se
@@ -142,25 +147,25 @@ base de datos gestionada. Render sí hace eso.
 
 ---
 
-### A-09 · La infraestructura se renombró a `callaibrate`
-**Qué acordamos.** Servicios `callaibrate-api` y `callaibrate-db`, dominios
-`callaibrate.vercel.app` y `callaibrate-api.onrender.com`, repositorio `callaibrate`. El
+### A-09 · La infraestructura se renombró a `callveroqa`
+**Qué acordamos.** Servicios `callveroqa-api` y `callveroqa-db`, dominios
+`callveroqa.vercel.app` y `callveroqa-api.onrender.com`, repositorio `callveroqa`. El
 dominio anterior redirige al nuevo.
 
 **Por qué.** Se pudo hacer sin coste porque la base ya se había perdido: no había datos que
 migrar. En otro momento habría implicado downtime.
 
 **Dos excepciones a propósito:**
-- El usuario/base `callqa` del `docker-compose.yml` **local** — renombrarlo borra tus datos
+- El usuario/base `callveroqa` del `docker-compose.yml` **local** — renombrarlo borra tus datos
   de desarrollo.
-- La clave `callqa-auth` del navegador — cambiarla cerraría la sesión de todos los usuarios.
+- La clave `callveroqa-auth` del navegador — cambiarla cerraría la sesión de todos los usuarios.
 
 **Coste de cambio.** 🔴 Otro renombrado ahora sí costaría downtime: hay datos.
 
 ---
 
 ### A-10 · Dos repositorios: uno privado y uno público
-**Qué acordamos.** `callaibrate` (privado, todo) y `callqa` (público, solo código limpio,
+**Qué acordamos.** `callveroqa` (completo, todo) y `callveroqa-public` (espejo limpio,
 con historial propio). El público se genera con `ops/publish-clean.ps1`.
 
 **Por qué.** Poder enseñar el código sin exponer documentación interna ni el historial.

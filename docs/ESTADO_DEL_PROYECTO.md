@@ -14,10 +14,10 @@ CallVeroQA** aplicados.
 > Render **caducó y fue eliminada**, así que el backend llevaba dos meses muriendo al
 > arrancar (`could not translate host name "dpg-…"`). **Los datos de producción se
 > perdieron** y no había copia de seguridad. Se recreó la infraestructura ya con el
-> nombre nuevo: `callaibrate-api` + `callaibrate-db`. Detalle en
+> nombre nuevo: `callveroqa-api` + `callveroqa-db`. Detalle en
 > [`RENOMBRADO_INFRA.md`](RENOMBRADO_INFRA.md).
 >
-> 🔑 **La `GROQ_API_KEY` la pones tú** en Render → `callaibrate-api` → **Environment**
+> 🔑 **La `GROQ_API_KEY` la pones tú** en Render → `callveroqa-api` → **Environment**
 > (es `sync: false`: vive solo ahí, nunca en el repo, y `git push` no la actualiza). La
 > clave que se filtró en `aeda304` está **revocada**; la válida está en tu `backend/.env`.
 >
@@ -79,7 +79,7 @@ Navegador ──HTTPS──> Frontend (Next.js 14) ──REST──> Backend (Fa
 ## 3. Estructura del monorepo
 
 ```
-callqa-ai/
+callveroqa/
 ├── docker-compose.yml        # Levanta TODO el stack local: bd + redis + api + worker + frontend
 ├── render.yaml               # Blueprint de Render (backend Docker + PostgreSQL)
 ├── README.md                 # Guía rápida del monorepo
@@ -269,7 +269,7 @@ Migraciones (Alembic):
 Requisito: **Docker Desktop** abierto.
 
 ```bash
-cd callqa-ai
+cd callveroqa
 docker compose up -d --build
 ```
 
@@ -309,10 +309,10 @@ Claude / OpenAI / Azure son opcionales: cambia `AI_PROVIDER` y pon su API key.
 
 ## 9. Despliegue en producción (gratis, coste $0)
 
-- **Frontend** en Vercel: <https://callaibrate.vercel.app>
-  (necesita `NEXT_PUBLIC_API_URL=https://callaibrate-api.onrender.com/api/v1`).
-- **Backend + PostgreSQL** en Render: <https://callaibrate-api.onrender.com>
-  (necesita `GROQ_API_KEY`, `CORS_ORIGINS=https://callaibrate.vercel.app`,
+- **Frontend** en Vercel: <https://callveroqa.vercel.app>
+  (necesita `NEXT_PUBLIC_API_URL=https://callveroqa-api.onrender.com/api/v1`).
+- **Backend + PostgreSQL** en Render: <https://callveroqa-api.onrender.com>
+  (necesita `GROQ_API_KEY`, `CORS_ORIGINS=https://callveroqa.vercel.app`,
   `PROCESS_INLINE=true`, `JWT_SECRET`).
 - Despliegue: `git push origin main` → Vercel y Render redepliegan solos.
 
@@ -381,7 +381,7 @@ caduca a los **90 días**.
       corregido.
 - [ ] Antes de producción real: cerrar **[`COMPLIANCE_CHECKLIST.md`](COMPLIANCE_CHECKLIST.md)**
       (validaciones de Compliance, DPO y Seguridad).
-- [x] **Renombrado de la infraestructura** a `callaibrate-api` / `callaibrate-db` y
+- [x] **Renombrado de la infraestructura** a `callveroqa-api` / `callveroqa-db` y
       URLs nuevas. Ver **[`RENOMBRADO_INFRA.md`](RENOMBRADO_INFRA.md)**.
 - [~] **Copias de seguridad de la base de datos.** Workflow
       `.github/workflows/backup-db.yml` listo (volcado diario, artefacto a 30 días).
@@ -434,7 +434,7 @@ caduca a los **90 días**.
 18. **Despliegue de Fase 2 + rediseño a producción** (Vercel + Render) y verificación
     (78 tests + suite E2E 13/13 local y prod). Pendiente: actualizar la
     `GROQ_API_KEY` de Render para reactivar la IA en producción.
-19. **Dos repos** (privado `callqa-ai` completo + público `callqa` limpio, ver
+19. **Dos repos** (privado `callveroqa` completo + público `callveroqa` limpio, ver
     `AGENTS.md §16`) y **auditoría de coherencia**: se eliminó código muerto
     (`require_role`, `kpi-card`, `seed_rubric`, settings de IA que no se leían,
     artefactos Railway), se alinearon comentarios/docstrings al estado real y se

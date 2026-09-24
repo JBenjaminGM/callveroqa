@@ -8,7 +8,7 @@ documentación.
 > Compliance.** (El banner visible de "vista previa" se retiró de la UI; se conserva
 > la salvaguarda interna `X-Prototype-Notice`.)
 
-- 🌐 **En vivo:** https://callaibrate.vercel.app · API: https://callaibrate-api.onrender.com
+- 🌐 **En vivo:** https://callveroqa.vercel.app · API: https://callveroqa-api.onrender.com
 - 👀 **Demo sin instalar nada:** `demo@callveroqa.com` / `CallVeroQA-Demo-2026` (solo lectura, con 90 días de datos ya cargados).
 - 👤 **Cuentas de trabajo:** el seed crea `admin@callveroqa.com`, `jefe@callveroqa.com` y un asesor por cada ejecutivo demo. **Las contraseñas se generan al azar y se imprimen una sola vez**: léelas con `docker compose logs api`.
 - 🎨 **Identidad de marca:** **[`docs/BRAND.md`](docs/BRAND.md)** (fuente de verdad del color, tipografía y tono).
@@ -26,7 +26,7 @@ documentación.
 Requisito: **Docker Desktop** abierto + una **API key de Groq** (gratis) en `backend/.env`.
 
 ```bash
-cd callqa-ai
+cd callveroqa
 docker compose up --build
 ```
 - 🖥️ App: <http://localhost:3000>  ·  📚 API: <http://localhost:8000/docs>  ·  Detener: `docker compose down`.
@@ -72,9 +72,9 @@ dimensión + score global ponderado + recomendaciones accionables + **reporte PD
 | **`docs/`** | **Toda la documentación** (guía `AGENTS.md`, estado, changelog, despliegue, diseño, pitch…) |
 | `docker-compose.yml` · `render.yaml` | Config: stack local / blueprint de Render |
 
-> Dos identificadores conservan el nombre anterior a propósito: el usuario/BD `callqa`
-> del `docker-compose.yml` local (renombrarlo invalida el volumen `pgdata`) y la clave
-> `callqa-auth` de localStorage (cambiarla cerraría la sesión de todos). Ver `docs/AGENTS.md`.
+> El renombrado es total: repositorio, servicios, base local y claves de navegador usan
+> `callveroqa`. Lo único que conserva los nombres anteriores es el mapa de migración de
+> cuentas del seed, para no duplicar usuarios ya creados. Ver `docs/ACUERDOS.md`.
 
 ---
 

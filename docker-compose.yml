@@ -16,13 +16,13 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_USER=callqa
-      - POSTGRES_PASSWORD=callqa
-      - POSTGRES_DB=callqa
+      - POSTGRES_USER=callveroqa
+      - POSTGRES_PASSWORD=callveroqa
+      - POSTGRES_DB=callveroqa
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U callqa']
+      test: ['CMD-SHELL', 'pg_isready -U callveroqa']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -46,7 +46,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - DATABASE_URL=postgresql://callqa:callqa@postgres:5432/callqa
+      - DATABASE_URL=postgresql://callveroqa:callveroqa@postgres:5432/callveroqa
       - REDIS_URL=redis://redis:6379/0
       # Siembra 90 dias de llamadas de ejemplo para que el panel no salga vacio.
       - SEED_DEMO=true
@@ -66,7 +66,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - DATABASE_URL=postgresql://callqa:callqa@postgres:5432/callqa
+      - DATABASE_URL=postgresql://callveroqa:callveroqa@postgres:5432/callveroqa
       - REDIS_URL=redis://redis:6379/0
     volumes:
       - audios:/data/audios

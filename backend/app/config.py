@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     )
 
     # --- Base de datos ---
-    database_url: str = "postgresql://callqa:callqa@localhost:5432/callqa"
+    database_url: str = "postgresql://callveroqa:callveroqa@localhost:5432/callveroqa"
     redis_url: str = "redis://localhost:6379/0"
 
     # --- Almacenamiento de audios ---

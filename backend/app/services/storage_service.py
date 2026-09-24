@@ -63,6 +63,25 @@ class S3StorageProvider(StorageProvider):
     def __init__(self) -> None:
         import boto3  # import perezoso: solo se necesita si se usa S3
 
+        # Se comprueba al construir y no al primer audio: si falta la
+        # configuración, es mejor que la API no arranque a que la primera
+        # llamada del cliente se pierda con un error del SDK de AWS.
+        faltan = [
+            nombre
+            for nombre, valor in (
+                ("AWS_S3_BUCKET", settings.aws_s3_bucket),
+                ("AWS_ACCESS_KEY_ID", settings.aws_access_key_id),
+                ("AWS_SECRET_ACCESS_KEY", settings.aws_secret_access_key),
+            )
+            if not valor
+        ]
+        if faltan:
+            raise ValueError(
+                "STORAGE_PROVIDER=s3 pero falta: "
+                + ", ".join(faltan)
+                + ". Complétalo o vuelve a STORAGE_PROVIDER=local."
+            )
+
         self.bucket = settings.aws_s3_bucket
         self.client = boto3.client(
             "s3",
@@ -78,8 +97,19 @@ class S3StorageProvider(StorageProvider):
         return f"s3://{self.bucket}/{key}"
 
     def _parse_key(self, url: str) -> str:
-        """Extrae la 'key' de S3 a partir de una URL s3://bucket/key."""
-        return url.replace(f"s3://{self.bucket}/", "")
+        """
+        Extrae la 'key' de S3 a partir de una URL `s3://bucket/key`.
+
+        Si la URL apunta a otro bucket se rechaza en vez de inventar una key:
+        pasa al restaurar una copia de seguridad de otro entorno, y el fallo
+        silencioso sería leer (o borrar) el objeto equivocado.
+        """
+        prefijo = f"s3://{self.bucket}/"
+        if not url.startswith(prefijo):
+            raise ValueError(
+                f"La ruta {url!r} no pertenece al bucket configurado ({self.bucket})."
+            )
+        return url[len(prefijo):]
 
     def load(self, url: str) -> bytes:
         obj = self.client.get_object(Bucket=self.bucket, Key=self._parse_key(url))

@@ -25,6 +25,7 @@ automatizado para call centers del sector banca. Desplegada en vivo:
 | Ver qué decidimos y qué costaría cambiarlo | `ACUERDOS.md` |
 | Ver de dónde viene el proyecto, en orden y en lenguaje normal | `HISTORIA.md` |
 | Ver quién más resuelve esto, qué nos falta y qué viene después | `COMPETENCIA.md` |
+| Ver qué falta para vender y en qué orden | `PLAN_PRODUCCION.md` |
 | Ver el estado actual, casos de uso, reglas de negocio y lo pendiente | `ESTADO_DEL_PROYECTO.md` |
 | Ver el historial de cambios | `CHANGELOG.md` |
 | **Publicar / desplegar gratis** | `DEPLOY_GRATIS.md` |
@@ -47,6 +48,7 @@ automatizado para call centers del sector banca. Desplegada en vivo:
   cambiarla**. Ninguna es inamovible; este documento existe para poder revisarlas con
   criterio. Incluye las decisiones aún abiertas.
 - **`HISTORIA.md`** — De dónde viene el proyecto: la línea del tiempo y el registro de cambios anterior al rebrand.
+- **`PLAN_PRODUCCION.md`** — Qué falta para que un cliente pague por esto: bloqueantes, confianza, producto y lo que no es código (gasto y cuentas externas). Dice qué está hecho y qué no.
 - **`COMPETENCIA.md`** — Comparativa con Observe.AI, CallMiner, Zendesk QA y otras: qué pide el mercado, dónde destacamos, qué se ha cerrado y el plan siguiente.
 - **`AGENTS.md`** — **Guía maestra de desarrollo / orientación para IAs**: estado
   actual, arquitectura, mapa del repo, cómo correr/testear/desplegar, *gotchas* y cómo

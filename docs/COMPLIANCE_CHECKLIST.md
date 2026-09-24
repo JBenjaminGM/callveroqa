@@ -20,8 +20,8 @@ evaluación (cabecera `X-Prototype-Notice`, logs con `environment="evaluation"`)
 | [ ] | Finalidad declarada limitada a evaluación de calidad; prohibido el uso secundario | DPO | Política interna firmada |
 | [ ] | Aviso de grabación verificado en el guion de la llamada y en la locución inicial | Compliance | Guion aprobado |
 | [ ] | Información al titular sobre el análisis automatizado de la grabación | DPO | Texto de la política de privacidad |
-| [ ] | Plazo de conservación definido para audio, transcripción y análisis, y **borrado automático** implementado al vencer | DPO + Ingeniería | Política de retención + evidencia del job de borrado |
-| [ ] | Procedimiento de atención de derechos ARCO/ARSULIPO (acceso, rectificación, supresión, oposición) sobre los datos de la plataforma | DPO | Procedimiento documentado |
+| [~] | Plazo de conservación definido para audio, transcripción y análisis, y **borrado automático** implementado al vencer | DPO + Ingeniería | **Implementado para el audio** (Ajustes → Retención de grabaciones, `retention_audio_days`; purga automática cada 6 h y botón «Aplicar ahora» que devuelve cuántas borró). **Falta que el DPO fije el plazo** y decidir si transcripción y análisis también caducan: hoy se conservan a propósito, porque son la evaluación y no la voz. |
+| [~] | Procedimiento de atención de derechos ARCO/ARSULIPO (acceso, rectificación, supresión, oposición) sobre los datos de la plataforma | DPO | **Supresión implementada**: `DELETE /agents/{id}/data` (solo administradores) borra llamadas, audios, transcripciones, análisis y revisiones de una persona, y devuelve el recuento para el registro. **Falta el procedimiento documentado** (quién lo atiende, en qué plazo y cómo se acredita al solicitante). |
 | [ ] | Evaluación de impacto (DPIA/EIPD) completada y aprobada | DPO | Informe de EIPD |
 
 ## 2. Datos personales dentro del contenido

@@ -6,6 +6,71 @@ Cambios relevantes. Formato: descripción (commit). Lo más nuevo arriba.
 > [`HISTORIA.md`](HISTORIA.md), movido tal cual: nombra el producto y la identidad
 > visual de entonces porque así era. Es historia, no estado.
 
+## Producción: cuentas, retención de datos y operación
+
+Sale de [`PLAN_PRODUCCION.md`](PLAN_PRODUCCION.md), que ordena lo que falta para
+que un cliente pueda pagar por esto. Aquí están los bloqueantes cerrados.
+
+**Cuentas** (antes no existían: las contraseñas las generaba el seed y se
+imprimían una vez):
+
+- `GET`/`POST /users`, `PATCH /users/{id}`, `POST /users/{id}/reset-password`
+  (gestión) y `POST /auth/change-password` (cualquiera, sobre su cuenta, pidiendo
+  la actual). Pantallas `/usuarios` y `/mi-cuenta`.
+- **Migración 0012** (`users.active`). Dar de baja no borra: cierra el acceso en
+  la siguiente petición —no cuando caduque el token— y conserva el historial.
+- Nunca se puede dejar la plataforma sin un administrador activo, ni
+  desactivarse uno mismo. La cuenta demo no se administra desde la API.
+- Contraseñas: mínimo 10 caracteres, no reutilizar las que llegaron a
+  publicarse, no igual al email; las generadas se muestran una sola vez.
+- `El límite del login pasa a contarse por IP + cuenta` (10/15 min). Contando
+  solo por IP, cinco fallos de una persona dejaban fuera 15 minutos a todo un
+  call center, que sale por una única IP pública.
+
+**Datos** (lo que un banco pregunta antes de firmar):
+
+- `Retención de grabaciones` configurable (**migración 0013**): pasados N días se
+  borra el audio y **se conservan transcripción y nota**. 0 = no caduca. Corre
+  sola con el uso (máx. cada 6 h) y se puede aplicar a mano desde Ajustes.
+  Reproducir un audio caducado devuelve **410** explicando por qué. No borra un
+  archivo que otra llamada vigente comparte.
+- `Supresión de una persona`: `DELETE /agents/{id}/data`, solo administradores
+  (`require_admin` nuevo), con recuento de lo borrado.
+
+**Operación:**
+
+- `/health` comprueba también la base de datos (503 si no responde). Un proceso
+  vivo que no puede consultar nada está caído para el usuario: esa diferencia es
+  la que dejó pasar dos meses de caída sin alarma.
+- `X-Request-ID` en cada respuesta (se respeta el del proxy), en todas las líneas
+  de log de esa petición y en el cuerpo de los errores 500.
+- `S3 endurecido`: si `STORAGE_PROVIDER=s3` y falta configuración, falla al
+  arrancar con un mensaje claro en vez de perder el primer audio; una ruta de
+  otro bucket se rechaza en vez de inventar una clave. Con tests, sin tocar AWS.
+
+**Alertas:** las llamadas suspendidas por criterio crítico tienen alerta propia
+(se mezclaban con «banda roja», que da una lectura falsa) y la tabla por campaña
+muestra su porcentaje.
+
+- `Tests`: 147 → **180**.
+
+## Marca: renombrado total, sin rastro del nombre anterior
+
+El rebrand anterior dejó fuera lo que costaba dinero o sesiones. Se revisó la
+decisión y se pagó el coste de una vez: repositorio `callveroqa` (+ espejo
+`callveroqa-public`), usuario y base local `callveroqa`, y las claves de
+`localStorage` (`callveroqa-auth`, `callveroqa-theme`). Efectos asumidos: quien
+tuviera un token guardado vuelve al login una vez y el tema se resetea.
+
+Lo único que conserva los nombres viejos son los mapas de migración de cuentas
+del seed (`@callaibrate.com` y `@callqa.com` → `@callveroqa.com`), sin los cuales
+se duplicarían los usuarios ya creados.
+
+**Pendiente, y separado a propósito** (rama `infra/renombrar-servicios`): los
+servicios de Render y el proyecto de Vercel. Cambiar los nombres en `render.yaml`
+no los renombra — Render los trata por nombre y crearía servicios nuevos,
+dejando huérfanos la base de datos y la `GROQ_API_KEY` del panel.
+
 ## Mejoras frente a la competencia: evidencia, críticos y búsqueda
 
 Nacen de una comparación con Observe.AI, CallMiner, Zendesk QA, Level AI y otras

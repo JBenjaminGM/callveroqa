@@ -1,18 +1,27 @@
 # CLAUDE.md
 
-**Para empezar a codear en un chat nuevo:** (1) lee **[`docs/AGENTS.md`](docs/AGENTS.md)**
-(guía completa: estado, arquitectura, mapa del repo, correr/testear/desplegar, *gotchas*);
-(2) tu **memoria de proyecto** se carga sola (índice `MEMORY.md`). Docs en **[`docs/`](docs/)**.
+**Para empezar a codear en un chat nuevo, en este orden:**
+1. **[`docs/CONTINUAR.md`](docs/CONTINUAR.md)** — el traspaso: dónde trabajar, cómo
+   arrancar en local, estado exacto, **qué está bloqueado esperando al usuario** y los
+   diez tropiezos que hacen perder tiempo.
+2. **[`docs/PLAN_PRODUCCION.md`](docs/PLAN_PRODUCCION.md)** — qué falta para vender y en
+   qué orden. **Es el documento que manda ahora.**
+3. **[`docs/AGENTS.md`](docs/AGENTS.md)** — arquitectura, mapa del repo, cómo
+   correr/testear/desplegar y los *gotchas*.
+
+Tu **memoria de proyecto** se carga sola (índice `MEMORY.md`). Docs en **[`docs/`](docs/)**.
 
 El producto se llama **CallVeroQA** ("Calidad verificada en cada llamada").
 
-Estado: plataforma **funcional y desplegada**, y **terminada** (el banner de
-"prototipo/vista previa" se **retiró** de la UI; solo queda el header interno
-`X-Prototype-Notice`). Además de la analítica y el reproductor sincronizado, ya
-**calibra**: revisión humana que **no pisa la nota de la IA**, sesión de puntuación a
-ciegas y panel de acuerdo IA-humano (`/calibracion`); y **cierra el ciclo**: el asesor
-responde a su evaluación y puede pedir revisión, y el panel del jefe abre con «a quién
-escuchar hoy y por qué». El traspaso entre sesiones vive en **`docs/CONTINUAR.md`**.
+Estado: plataforma **funcional, desplegada y en camino de venderse**. Ya no es solo un
+portafolio: el trabajo actual es cerrar lo que impide que un cliente pague por ella.
+Además de la analítica y el reproductor sincronizado, **calibra** (revisión humana que no
+pisa la nota de la IA, sesión a ciegas y panel de acuerdo en `/calibracion`), **cierra el
+ciclo** (el asesor responde y puede pedir revisión; el panel abre con «a quién escuchar
+hoy y por qué»), **justifica cada nota** (evidencia con saltos al audio y criterios
+críticos que suspenden la llamada) y **dice por qué llaman los clientes** (motivos de
+llamada). Tiene gestión de cuentas y contraseñas, retención de grabaciones y supresión de
+datos de una persona.
 
 Esenciales:
 - **IA = Groq por defecto** (`AI_PROVIDER=groq`): Whisper large v3 + Llama 3.3 70B, gratis.

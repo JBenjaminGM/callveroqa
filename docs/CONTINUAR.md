@@ -51,8 +51,8 @@ lanzadores llevan la ruta incrustada y fallan en silencio.
 |---|---|
 | Repositorio | `github.com/JBenjaminGM/callveroqa` (espejo limpio: `callveroqa-public`) |
 | Rama | `main`, al día con `origin` |
-| Tests backend | **199**, todos en verde |
-| Migraciones | 0001–0015 |
+| Tests backend | **209**, todos en verde |
+| Migraciones | 0001–0016 |
 | Producción | Render + Vercel, desplegado y verificado el 24 sep 2026 |
 | Sin subir | rama `infra/renombrar-servicios` (ver abajo) |
 
@@ -118,6 +118,14 @@ que se movió el equipo**. Tarjeta «Coaching» en la ficha del ejecutivo y en �
 rendimiento». Probándolo contra los datos reales salió que, a los cinco días de una
 sesión, el asesor ya tenía tres llamadas y el equipo no, y se le daba por buena con el
 cambio bruto: ahora, si hay equipo pero faltan sus datos, el veredicto espera.
+
+**Criterios «no aplica»** (migración 0016, `COMPETENCIA.md` 3.4): una categoría marcada
+como «puede no aplicar» sale de la nota cuando no se dio la situación que evalúa, y su
+peso se reparte. Vienen activadas en objeciones y promociones. **Falta verlo con la IA
+real**: en local no hay `GROQ_API_KEY`, así que se probó el pipeline completo contra
+PostgreSQL con la respuesta de la IA simulada. Lo primero con una clave válida es subir
+una llamada de consulta (sin venta ni objeciones) y comprobar que la IA devuelve `null`
+en esas dos y nota en el resto.
 
 **Dos fallos que solo aparecieron probando contra el sistema real:** el login limitaba
 cinco intentos **por IP** —y un call center entero sale por una sola IP pública, así que
@@ -231,11 +239,9 @@ El detalle está en el `CHANGELOG.md`. Lo que conviene saber para no deshacerlo:
 El orden está en **[`PLAN_PRODUCCION.md`](PLAN_PRODUCCION.md)**. Lo que queda por
 programar, de más a menos valor:
 
-1. **Criterios «no aplica»** en la rúbrica (3.4): hoy un criterio que no aplica a esa
-   llamada baja la nota igual.
-2. **Alertas de críticos por asesor y tendencia** (ya existe la alerta por llamada y el
+1. **Alertas de críticos por asesor y tendencia** (ya existe la alerta por llamada y el
    porcentaje por campaña; falta la serie temporal).
-3. **Multi-cliente** (3.5): solo si se vende a más de una empresa. Es una reforma grande
+2. **Multi-cliente** (3.5): solo si se vende a más de una empresa. Es una reforma grande
    —hay que llevar el identificador de cliente a todas las tablas y consultas— y **no
    hace falta** para vender una instalación a un banco.
 
@@ -251,7 +257,7 @@ Dos avisos si retomas esto dentro de un tiempo:
 
 ## Cómo verificar que todo sigue bien
 
-Tests del backend (199):
+Tests del backend (209):
 
 ```bash
 cd backend && ./.venv/Scripts/python.exe -m pytest -q

@@ -2,7 +2,17 @@
 
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, Integer, Numeric, String, Text, func
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    false as sa_false,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -26,6 +36,15 @@ class RubricConfig(Base):
     criteria: Mapped[list | None] = mapped_column(JSONType, nullable=True, default=list)
     # weight: peso porcentual; la suma de todas las dimensiones debe ser 100.00
     weight: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False)
+    # «No aplica»: la dimensión puede no tener sentido en una llamada concreta
+    # (no hubo objeciones que manejar, no era una llamada de venta). Si la IA la
+    # marca así, no puntúa y su peso se reparte entre las demás, en vez de
+    # contar como un cero que baja la nota por algo que el asesor no pudo hacer.
+    allow_na: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=sa_false(), nullable=False
+    )
+    # Cuándo no aplica, en palabras del jefe. Se le pasa a la IA tal cual.
+    na_condition: Mapped[str | None] = mapped_column(Text, nullable=True)
     display_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()

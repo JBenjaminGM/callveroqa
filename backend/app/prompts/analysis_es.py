@@ -31,6 +31,13 @@ def build_analysis_prompt(
         ]
         if enabled:
             line += "\n   Subcriterios a evaluar: " + "; ".join(enabled)
+        if dim.get("allow_na"):
+            cuando = (dim.get("na_condition") or "").strip()
+            line += (
+                "\n   PUEDE NO APLICAR"
+                + (f" ({cuando})" if cuando else "")
+                + ": si no aplica a esta llamada, su score es null."
+            )
         rubric_lines.append(line)
     rubric_block = "\n".join(rubric_lines)
 
@@ -64,7 +71,9 @@ def build_analysis_prompt(
     )
     n = len(segments)
     score_lines = ",\n".join(
-        f'    "{dim["dimension_key"]}": <int 0-100>' for dim in rubric
+        f'    "{dim["dimension_key"]}": '
+        + ("<int 0-100 o null si no aplica>" if dim.get("allow_na") else "<int 0-100>")
+        for dim in rubric
     )
 
     product_note_block = ""
@@ -91,6 +100,10 @@ RÚBRICA DE EVALUACIÓN (score 0-100 por dimensión):
 INSTRUCCIONES:
 - Evalúa CADA dimensión de la rúbrica de 0 a 100, teniendo en cuenta ÚNICAMENTE los
   subcriterios listados en ella. Basa cada score en evidencia concreta de la transcripción.
+- NO APLICA: solo las dimensiones marcadas «PUEDE NO APLICAR» admiten null, y solo
+  cuando la situación que evalúan no se dio en la llamada (no es lo mismo que hacerlo
+  mal: si hubo una objeción y se manejó mal, puntúa bajo, no null). Explica en su
+  "dimension_evidence" por qué no aplica. Las demás dimensiones llevan SIEMPRE nota.
 - EVIDENCIA: para CADA dimensión, en "dimension_evidence" explica en UNA frase por qué
   pusiste esa nota y cita de 1 a 3 números de segmento [i] que la respaldan (lo que se
   dijo, o dónde debió decirse y no se dijo). Sin segmentos inventados.

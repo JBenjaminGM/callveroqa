@@ -24,6 +24,34 @@ export function orderByRubric(
   );
 }
 
+/** Claves de las dimensiones que la rúbrica deja marcar como «no aplica». */
+export function naAllowedKeys(rubric?: RubricDimension[]): Set<string> {
+  return new Set(
+    (rubric ?? []).filter((d) => d.allow_na).map((d) => d.dimension_key),
+  );
+}
+
+/**
+ * Las notas que se envían: sin las dimensiones marcadas «no aplica». Omitirlas
+ * es lo que el backend entiende como «no aplica» — pondera solo lo puntuado.
+ */
+export function scoresToSend(
+  scores: Record<string, number>,
+  notApplicable: Set<string>,
+): Record<string, number> {
+  return Object.fromEntries(
+    Object.entries(scores).filter(([k]) => !notApplicable.has(k)),
+  );
+}
+
+/** Alterna una clave en un conjunto sin mutarlo (para usar en setState). */
+export function toggled(set: Set<string>, key: string): Set<string> {
+  const next = new Set(set);
+  if (next.has(key)) next.delete(key);
+  else next.add(key);
+  return next;
+}
+
 /**
  * Formulario de puntuación por dimensión.
  *
@@ -37,11 +65,19 @@ export function ScoreForm({
   onChange,
   reference,
   disabled,
+  naAllowed,
+  notApplicable,
+  onToggleNA,
 }: {
   /** Dimensiones a puntuar, en orden. */
   keys: string[];
   scores: Record<string, number>;
   onChange: (key: string, value: number) => void;
+  /** Dimensiones que la rúbrica deja marcar como «no aplica». */
+  naAllowed?: Set<string>;
+  /** Las marcadas ahora mismo como «no aplica»: no se puntúan ni se envían. */
+  notApplicable?: Set<string>;
+  onToggleNA?: (key: string) => void;
   /**
    * Nota de la IA para mostrar al lado de cada deslizador. Se omite en las
    * sesiones a ciegas: ahí no debe existir ninguna referencia.
@@ -55,6 +91,34 @@ export function ScoreForm({
         const value = scores[key] ?? 0;
         const ref = reference?.[key];
         const delta = ref == null ? null : value - ref;
+        const puedeNA = !!onToggleNA && !!naAllowed?.has(key);
+        if (notApplicable?.has(key)) {
+          return (
+            <div
+              key={key}
+              className="flex flex-wrap items-center justify-between gap-2"
+            >
+              <span className="text-small text-text-primary">
+                {dimensionLabel(key)}
+              </span>
+              <span className="flex items-center gap-3 text-small">
+                <span className="text-text-muted">
+                  No aplica{reference && ref == null ? ' (la IA tampoco la puntuó)' : ''}
+                </span>
+                {puedeNA && (
+                  <button
+                    type="button"
+                    onClick={() => onToggleNA?.(key)}
+                    disabled={disabled}
+                    className="text-accent-primary hover:underline"
+                  >
+                    Puntuar
+                  </button>
+                )}
+              </span>
+            </div>
+          );
+        }
         return (
           <div key={key}>
             <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-2">
@@ -65,6 +129,20 @@ export function ScoreForm({
                 {dimensionLabel(key)}
               </label>
               <span className="flex items-center gap-2 font-mono text-small tabular-nums">
+                {puedeNA && (
+                  <button
+                    type="button"
+                    onClick={() => onToggleNA?.(key)}
+                    disabled={disabled}
+                    className="font-sans text-text-muted hover:text-accent-primary"
+                    title="Esta llamada no dio ocasión de evaluar esta categoría"
+                  >
+                    No aplica
+                  </button>
+                )}
+                {reference && ref == null && (
+                  <span className="text-text-muted">IA: no aplica</span>
+                )}
                 {ref != null && (
                   <span className="text-text-muted">IA {ref}</span>
                 )}

@@ -109,6 +109,14 @@ hay veredicto, y la plataforma lo dice en vez de inventarlo.
 Al registrarla se proponen los criterios donde el asesor más se separa del equipo, que
 no son necesariamente los de nota más baja.
 
+### 6. Criterios «no aplica»
+
+Cualquier categoría de la rúbrica puede marcarse como «puede no aplicar», con la
+condición en palabras del jefe. Si la IA decide que en esa llamada no aplica, la
+categoría no puntúa y su peso se reparte entre las demás, en vez de contar como un cero.
+Solo puede no aplicar lo que la rúbrica permite: la IA no se libra de una categoría por
+dejarla en blanco.
+
 ## Plan: lo siguiente, por impacto
 
 | # | Mejora | Por qué | Coste |
@@ -116,7 +124,7 @@ no son necesariamente los de nota más baja.
 | ~~1~~ | ~~**Temas y motivos de llamada**~~ | **Hecho** (septiembre de 2026). | ✅ |
 | ~~2~~ | ~~**Coaching medible**~~ | **Hecho** (septiembre de 2026). | ✅ |
 | 3 | **Alertas de críticos** en el panel (tasa de suspendidas por campaña y asesor, tendencia) | Riesgo normativo visible de un vistazo. | 🟢 |
-| 4 | **Preguntas «N/A» o condicionales** en la rúbrica | Un criterio que no aplica no debería bajar la nota. | 🟡 |
+| ~~4~~ | ~~**Preguntas «N/A» o condicionales**~~ | **Hecho** (septiembre de 2026). | ✅ |
 | 5 | **Transcripción on-premise o Azure** para datos reales | Requisito de compliance antes de usar audios de clientes. | 🔴 |
 | 6 | Integración con telefonía (ingesta automática) | Elimina la subida manual. | 🔴 |
 

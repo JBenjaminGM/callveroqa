@@ -22,6 +22,9 @@ class RubricDimensionOut(BaseModel):
     weight: float
     display_order: int | None = None
     criteria: list[RubricCriterion] = []
+    # La dimensión puede no aplicar a una llamada; si no aplica, no puntúa.
+    allow_na: bool = False
+    na_condition: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -44,6 +47,8 @@ class RubricDimensionUpdate(BaseModel):
     description: str | None = None
     weight: float = Field(ge=0, le=100)
     criteria: list[RubricCriterion] = []
+    allow_na: bool = False
+    na_condition: str | None = Field(default=None, max_length=500)
 
 
 class RubricUpdateRequest(BaseModel):

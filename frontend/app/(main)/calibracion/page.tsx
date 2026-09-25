@@ -11,7 +11,13 @@ import { Textarea } from '@/components/ui/input';
 import { EmptyState, ErrorState, Skeleton, Spinner } from '@/components/ui/feedback';
 import { SectionHeader } from '@/components/ui/section';
 import { TranscriptPlayer } from '@/components/calls/transcript-player';
-import { ScoreForm, orderByRubric } from '@/components/calibration/score-form';
+import {
+  ScoreForm,
+  naAllowedKeys,
+  orderByRubric,
+  scoresToSend,
+  toggled,
+} from '@/components/calibration/score-form';
 import { ScoreGauge } from '@/components/dashboard/viz';
 import {
   useAgreement,
@@ -279,6 +285,10 @@ function Puntuacion({
     Object.fromEntries(dimensiones.map((k) => [k, 50])),
   );
   const [comment, setComment] = useState('');
+  // Aparte de las notas: así el efecto de abajo, que rellena las dimensiones
+  // que faltan, no puede «resucitar» una marcada como no aplica.
+  const [noAplica, setNoAplica] = useState<Set<string>>(() => new Set());
+  const { data: rubrica } = useRubric();
 
   // Si la rúbrica termina de cargar después de abrir la llamada, sus dimensiones
   // se incorporan aquí. Sin esto el formulario se quedaría vacío y guardar
@@ -296,7 +306,7 @@ function Puntuacion({
   async function onGuardar() {
     const review = await save.mutateAsync({
       callId,
-      dimension_scores: scores,
+      dimension_scores: scoresToSend(scores, noAplica),
       comment: comment.trim() || null,
       blind: true,
     });
@@ -349,6 +359,9 @@ function Puntuacion({
             setScores((prev) => ({ ...prev, [key]: value }))
           }
           disabled={save.isPending}
+          naAllowed={naAllowedKeys(rubrica)}
+          notApplicable={noAplica}
+          onToggleNA={(key) => setNoAplica((prev) => toggled(prev, key))}
         />
 
         <div className="mt-5">

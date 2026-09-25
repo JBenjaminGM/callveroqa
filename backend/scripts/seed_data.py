@@ -129,6 +129,17 @@ CRITICAL_BY_DEFAULT = {
     "compliance": {"Disclaimers obligatorios", "Sin afirmaciones prohibidas"},
 }
 
+# Dimensiones que pueden no aplicar a una llamada, y cuándo. Solo se aplica al
+# crear la dimensión: si el jefe lo cambia, ningún arranque se lo deshace. Las
+# bases anteriores las reciben de la migración 0016, con el mismo texto.
+NA_POR_DEFECTO = {
+    "objections": "Solo aplica si el cliente plantea alguna objeción, duda o reparo.",
+    "promotions": (
+        "Solo aplica si la llamada es de venta o el cliente pregunta por un "
+        "producto; no en consultas, reclamos o gestiones."
+    ),
+}
+
 # El proveedor de IA/transcripción lo fija la variable de entorno, no la BD.
 SETTINGS = {
     "default_language": "es",
@@ -295,6 +306,8 @@ def seed() -> None:
                         weight=weight,
                         display_order=order,
                         criteria=default_criteria,
+                        allow_na=key in NA_POR_DEFECTO,
+                        na_condition=NA_POR_DEFECTO.get(key),
                     )
                 )
             elif not existing.criteria:

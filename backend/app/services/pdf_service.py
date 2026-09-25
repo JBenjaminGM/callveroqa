@@ -102,6 +102,10 @@ def generate_call_report(call: Call) -> bytes:
                 str(score),
                 _classify(int(score)),
             ])
+        # Las que no aplicaban se listan igual: si desaparecieran del informe,
+        # quien lo lea pensaría que la rúbrica tenía una dimensión menos.
+        for key in analysis.not_applicable or []:
+            dim_rows.append([DIMENSION_LABELS.get(key, key), "—", "No aplica"])
         dim_table = Table(dim_rows, colWidths=[8 * cm, 3 * cm, 5 * cm])
         dim_table.setStyle(TableStyle([
             ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),

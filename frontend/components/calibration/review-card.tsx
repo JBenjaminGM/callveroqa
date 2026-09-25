@@ -6,7 +6,13 @@ import { Card, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/input';
 import { Spinner, ErrorState } from '@/components/ui/feedback';
-import { ScoreForm, orderByRubric } from '@/components/calibration/score-form';
+import {
+  ScoreForm,
+  naAllowedKeys,
+  orderByRubric,
+  scoresToSend,
+  toggled,
+} from '@/components/calibration/score-form';
 import { getErrorMessage } from '@/lib/api';
 import { isManager, useAuthStore } from '@/lib/auth';
 import { useDeleteReview, useRubric, useSaveReview } from '@/lib/queries';
@@ -247,27 +253,46 @@ function ReviewForm({ call, onClose }: { call: CallDetail; onClose: () => void }
   const save = useSaveReview();
   const { data: rubrica } = useRubric();
   const ia = call.analysis?.dimension_scores ?? {};
+  const iaNoAplica = call.analysis?.not_applicable ?? [];
   const previa = call.review?.dimension_scores;
 
   // Se parte de la nota que ya hubiera; si es la primera revisión, de la de la
   // IA. Empezar en cero obligaría a mover las siete dimensiones para corregir
-  // una sola.
+  // una sola. Las que no aplicaban arrancan en 50 por si se deciden puntuar.
   const [scores, setScores] = useState<Record<string, number>>(() => ({
+    ...Object.fromEntries(iaNoAplica.map((k) => [k, 50])),
     ...ia,
     ...(previa ?? {}),
   }));
+  // «No aplica» de partida: lo que dijo la IA o, si ya hubo revisión, lo que
+  // esa revisión dejó sin puntuar.
+  const [noAplica, setNoAplica] = useState<Set<string>>(
+    () =>
+      new Set(
+        previa
+          ? [...Object.keys(ia), ...iaNoAplica].filter((k) => !(k in previa))
+          : iaNoAplica,
+      ),
+  );
   const [comment, setComment] = useState(call.review?.comment ?? '');
 
   const claves = orderByRubric(
-    Object.keys(ia).length ? Object.keys(ia) : Object.keys(scores),
+    Object.keys(ia).length || iaNoAplica.length
+      ? [...Object.keys(ia), ...iaNoAplica]
+      : Object.keys(scores),
     rubrica,
   );
-  const sinCambios = claves.every((k) => scores[k] === ia[k]);
+  const aEnviar = scoresToSend(scores, noAplica);
+  // Sin cambios = cada dimensión está como la dejó la IA: misma nota, o «no
+  // aplica» en las mismas.
+  const sinCambios = claves.every((k) =>
+    noAplica.has(k) ? !(k in ia) : scores[k] === ia[k],
+  );
 
   async function onSave() {
     await save.mutateAsync({
       callId: call.id,
-      dimension_scores: scores,
+      dimension_scores: aEnviar,
       comment: comment.trim() || null,
       // Editar desde el detalle nunca es a ciegas: la nota de la IA está a la
       // vista. Marcarla como ciega falsearía el panel de acuerdo.
@@ -295,6 +320,9 @@ function ReviewForm({ call, onClose }: { call: CallDetail; onClose: () => void }
           setScores((prev) => ({ ...prev, [key]: value }))
         }
         disabled={save.isPending}
+        naAllowed={naAllowedKeys(rubrica)}
+        notApplicable={noAplica}
+        onToggleNA={(key) => setNoAplica((prev) => toggled(prev, key))}
       />
 
       <div className="mt-5">
@@ -328,7 +356,10 @@ function ReviewForm({ call, onClose }: { call: CallDetail; onClose: () => void }
       )}
 
       <div className="mt-5 flex items-center gap-3">
-        <Button onClick={onSave} disabled={save.isPending}>
+        <Button
+          onClick={onSave}
+          disabled={save.isPending || Object.keys(aEnviar).length === 0}
+        >
           {save.isPending ? <Spinner /> : <Check size={16} />}
           Guardar revisión
         </Button>

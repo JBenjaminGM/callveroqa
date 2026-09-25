@@ -33,7 +33,7 @@ Esenciales:
   `is_manager` / `require_manager` protegen lo de gestión.
 - **Campañas con nota de producto:** entidad `Campaign` (9 campos); se inyecta en el prompt.
 - **Trabajar en `C:\Users\master\dev\callveroqa`** (NO la copia de OneDrive).
-- **Tests:** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q` (199 tests). Migraciones 0001–0015.
+- **Tests:** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q` (209 tests). Migraciones 0001–0016.
 - **Desplegar:** `git push origin main` → Vercel + Render redepliegan solos. **`GROQ_API_KEY`
   en prod vive en el dashboard de Render (`sync: false`), no en el repo.**
 - **Dos repos:** privado `callveroqa` (completo) + público `callveroqa` (código limpio). Publicar
@@ -47,9 +47,11 @@ Esenciales:
   **Las identidades visuales anteriores están OBSOLETAS**: cuáles fueron y qué
   colores, tipografías y clases traían está en `docs/HISTORIA.md`. Si encuentras
   algo de eso en el código, es deuda; corrígelo contra `BRAND.md`.
-- **Infra renombrada** (septiembre 2026): Render sirve `callveroqa-api` +
-  `callveroqa-db`. Se pudo hacer sin migrar nada porque la PostgreSQL del plan
-  gratuito **había caducado** y los datos de producción ya se habían perdido.
+- **URLs vivas (comprobado el 25 sep 2026):** `callaibrate-api.onrender.com` y
+  `callaibrate.vercel.app`. Los nombres `callveroqa-api` / `callveroqa.vercel.app`
+  **todavía no existen** (dan 404): renombrar los servicios está pendiente del usuario
+  y preparado en la rama `infra/renombrar-servicios` (ver `docs/CONTINUAR.md`). La
+  PostgreSQL del plan gratuito ya caducó una vez y se recreó; volverá a caducar.
 - **Renombrado total:** no queda ningún identificador con la marca anterior. Los
   únicos restos vivos son los mapas de migración de emails del seed (`@callaibrate.com`,
   `@callqa.com` → `@callveroqa.com`), que deben quedarse.

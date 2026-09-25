@@ -65,6 +65,39 @@ def normalize_evidence(raw, rubric_keys: list[str], n_segments: int) -> dict:
     return result
 
 
+# Lo que un LLM escribe en vez de null para decir «no aplica».
+_NO_APLICA = {"", "na", "n/a", "null", "none", "no aplica", "not applicable"}
+
+
+def normalize_scores(raw, rubric: list[dict]) -> tuple[dict[str, int], list[str]]:
+    """
+    Separa las notas por dimensión de las dimensiones que no aplicaron.
+
+    Solo puede «no aplicar» una dimensión que la rúbrica permite marcar así. Si
+    la IA deja sin nota una que no lo permite, no se le regala: queda sin
+    puntuar y cuenta como cero, igual que si la hubiera omitido. Decidir qué
+    puede no aplicar es de la rúbrica, no del modelo.
+
+    Las claves que no están en la rúbrica se conservan tal cual (no pesan en la
+    nota global); las notas se acotan a 0-100.
+    """
+    if not isinstance(raw, dict):
+        return {}, []
+    permite_na = {d["dimension_key"] for d in rubric if d.get("allow_na")}
+    scores: dict[str, int] = {}
+    not_applicable: list[str] = []
+    for key, value in raw.items():
+        if value is None or (isinstance(value, str) and value.strip().lower() in _NO_APLICA):
+            if key in permite_na:
+                not_applicable.append(key)
+            continue
+        try:
+            scores[key] = max(0, min(100, int(round(float(value)))))
+        except (TypeError, ValueError):
+            continue
+    return scores, not_applicable
+
+
 def critical_criteria(rubric: list[dict]) -> dict[str, set[str]]:
     """Criterios críticos ACTIVOS de la rúbrica, por dimensión (nombres en minúscula)."""
     result: dict[str, set[str]] = {}

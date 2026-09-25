@@ -309,6 +309,33 @@ export default function CallDetailPage() {
                         );
                       },
                     )}
+                    {/* Las que no aplicaban se enseñan igual, con su porqué: si
+                        desaparecieran, parecería que la rúbrica tiene una menos
+                        o que la IA se olvidó de puntuarlas. */}
+                    {(call.analysis.not_applicable ?? []).map((key) => {
+                      const evidence = call.analysis?.dimension_evidence?.[key];
+                      return (
+                        <div key={key}>
+                          <div className="mb-1 flex justify-between text-small">
+                            <span className="text-text-primary">
+                              {dimensionLabel(key)}
+                            </span>
+                            <span className="font-semibold text-text-muted">
+                              No aplica
+                            </span>
+                          </div>
+                          <div className="h-2.5 w-full rounded-full border border-dashed border-border" />
+                          <p className="mt-1.5 text-small text-text-secondary">
+                            {evidence?.justification ||
+                              'No se dio la situación que evalúa.'}{' '}
+                            <span className="text-text-muted">
+                              No cuenta para la nota: su peso se reparte entre
+                              las demás.
+                            </span>
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
                 </Card>
 

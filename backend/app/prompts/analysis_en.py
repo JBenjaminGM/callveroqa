@@ -29,6 +29,13 @@ def build_analysis_prompt(
         ]
         if enabled:
             line += "\n   Sub-criteria to evaluate: " + "; ".join(enabled)
+        if dim.get("allow_na"):
+            when = (dim.get("na_condition") or "").strip()
+            line += (
+                "\n   MAY NOT APPLY"
+                + (f" ({when})" if when else "")
+                + ": if it does not apply to this call, its score is null."
+            )
         rubric_lines.append(line)
     rubric_block = "\n".join(rubric_lines)
 
@@ -61,7 +68,9 @@ def build_analysis_prompt(
     )
     n = len(segments)
     score_lines = ",\n".join(
-        f'    "{dim["dimension_key"]}": <int 0-100>' for dim in rubric
+        f'    "{dim["dimension_key"]}": '
+        + ("<int 0-100 or null if not applicable>" if dim.get("allow_na") else "<int 0-100>")
+        for dim in rubric
     )
 
     product_note_block = ""
@@ -88,6 +97,11 @@ EVALUATION RUBRIC (score 0-100 per dimension):
 INSTRUCTIONS:
 - Score EACH rubric dimension 0-100, considering ONLY the sub-criteria listed in it.
   Base each score on concrete evidence from the transcript.
+- NOT APPLICABLE: only dimensions marked "MAY NOT APPLY" accept null, and only when the
+  situation they assess did not happen in the call (that is not the same as doing it
+  badly: if there was an objection and it was handled poorly, score it low, not null).
+  Explain in its "dimension_evidence" why it does not apply. All other dimensions ALWAYS
+  get a score.
 - EVIDENCE: for EACH dimension, in "dimension_evidence" explain in ONE sentence why you
   gave that score and cite 1 to 3 segment numbers [i] backing it (what was said, or where
   it should have been said and wasn't). Do not invent segments.

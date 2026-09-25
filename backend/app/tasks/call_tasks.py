@@ -39,6 +39,7 @@ from app.services.evidence_service import (
     apply_auto_fail,
     normalize_critical_failures,
     normalize_evidence,
+    normalize_scores,
 )
 from app.services.campaign_service import build_product_note_text
 from app.services.conversation_metrics_service import compute_conversation_metrics
@@ -149,6 +150,8 @@ def _run_pipeline(db, call: Call) -> None:
             "dimension_name": r.dimension_name,
             "description": r.description,
             "criteria": r.criteria or [],
+            "allow_na": bool(r.allow_na),
+            "na_condition": r.na_condition,
         }
         for r in rubric_rows
     ]
@@ -192,10 +195,13 @@ def _run_pipeline(db, call: Call) -> None:
         segments, call.duration_seconds
     )
 
-    dimension_scores = {
-        k: int(v) for k, v in analysis_result.get("dimension_scores", {}).items()
-    }
-    global_score = calculate_global_score(dimension_scores, rubric_weights)
+    # Las dimensiones que no aplicaron salen de la nota: su peso se reparte.
+    dimension_scores, not_applicable = normalize_scores(
+        analysis_result.get("dimension_scores", {}), rubric_list
+    )
+    global_score = calculate_global_score(
+        dimension_scores, rubric_weights, not_applicable
+    )
 
     # Evidencia de cada nota y criterios críticos, saneados contra la rúbrica.
     n_segments = len(masked_segments)
@@ -207,6 +213,12 @@ def _run_pipeline(db, call: Call) -> None:
     critical_failures = normalize_critical_failures(
         analysis_result.get("critical_failures"), rubric_list, n_segments
     )
+    # No se puede incumplir lo que no aplicaba: un crítico en una dimensión que
+    # la IA dio por no aplicable es una contradicción, y suspender no se decide
+    # a partir de una contradicción.
+    critical_failures = [
+        f for f in critical_failures if f["dimension"] not in not_applicable
+    ]
     global_score, uncapped_score = apply_auto_fail(global_score, critical_failures)
 
     # ---- Detección y emparejamiento del ejecutivo ----
@@ -243,6 +255,7 @@ def _run_pipeline(db, call: Call) -> None:
         dimension_evidence=dimension_evidence or None,
         critical_failures=critical_failures or None,
         uncapped_score=uncapped_score,
+        not_applicable=not_applicable or None,
         recommendations=analysis_result.get("recommendations", []),
         summary=analysis_result.get("summary"),
         ai_provider=_provider_name(),

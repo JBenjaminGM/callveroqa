@@ -46,6 +46,9 @@ class Analysis(Base):
     # global_score es 0 y uncapped_score guarda la nota que habría tenido.
     critical_failures: Mapped[list | None] = mapped_column(JSONType, nullable=True)
     uncapped_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # not_applicable: [dimension_key, ...] que no aplicaban a esta llamada. No
+    # están en dimension_scores y no cuentan para la nota global.
+    not_applicable: Mapped[list | None] = mapped_column(JSONType, nullable=True)
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     ai_provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
     ai_model: Mapped[str | None] = mapped_column(String(100), nullable=True)

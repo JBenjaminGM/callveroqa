@@ -111,6 +111,9 @@ def update_rubric(
         row.weight = dim.weight
         row.display_order = i + 1
         row.criteria = criteria
+        row.allow_na = dim.allow_na
+        # La condición solo tiene sentido si la dimensión puede no aplicar.
+        row.na_condition = ((dim.na_condition or "").strip() or None) if dim.allow_na else None
 
     # Elimina las dimensiones que ya no están en la rúbrica enviada.
     for key, row in existing.items():

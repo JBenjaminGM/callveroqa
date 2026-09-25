@@ -158,6 +158,8 @@ export interface Analysis {
   critical_failures?: CriticalFailure[] | null;
   /** Nota que habría tenido sin el auto-fail (solo si hay fallos críticos). */
   uncapped_score?: number | null;
+  /** Dimensiones que no aplicaban a esta llamada: sin nota y fuera del global. */
+  not_applicable?: string[] | null;
   recommendations: Recommendation[];
   summary?: string | null;
   ai_provider?: string | null;
@@ -490,6 +492,9 @@ export interface RubricDimension {
   weight: number;
   display_order?: number | null;
   criteria: RubricCriterion[];
+  /** Puede no aplicar a una llamada: entonces no puntúa y su peso se reparte. */
+  allow_na?: boolean;
+  na_condition?: string | null;
 }
 
 /** Forma enviada al guardar la rúbrica (dimension_key vacío = categoría nueva). */
@@ -499,6 +504,8 @@ export interface RubricDimensionInput {
   description?: string | null;
   weight: number;
   criteria: RubricCriterion[];
+  allow_na?: boolean;
+  na_condition?: string | null;
 }
 
 export interface AppSettings {

@@ -1,6 +1,6 @@
 """Schemas del análisis IA y la transcripción."""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class Recommendation(BaseModel):
@@ -56,6 +56,8 @@ class AnalysisOut(BaseModel):
     critical_failures: list[CriticalFailure] | None = None
     # Nota que habría tenido sin el auto-fail (solo si hay critical_failures).
     uncapped_score: int | None = None
+    # Dimensiones que no aplicaban a esta llamada: sin nota y fuera del global.
+    not_applicable: list[str] | None = None
     recommendations: list[Recommendation] = []
     summary: str | None = None
     ai_provider: str | None = None
@@ -63,3 +65,10 @@ class AnalysisOut(BaseModel):
     team_average: dict[str, float] | None = None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("recommendations", mode="before")
+    @classmethod
+    def _sin_recomendaciones(cls, v):
+        # La columna admite nulo; sin esto, un análisis sin recomendaciones
+        # tumbaba el detalle de la llamada con un 500.
+        return v or []

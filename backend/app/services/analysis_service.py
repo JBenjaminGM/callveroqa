@@ -247,17 +247,33 @@ def get_analysis_provider() -> AnalysisProvider:
     raise ValueError(f"Proveedor de IA desconocido: {provider}")
 
 
-def calculate_global_score(dimension_scores: dict[str, int], rubric: dict[str, float]) -> int:
+def calculate_global_score(
+    dimension_scores: dict[str, int],
+    rubric: dict[str, float],
+    not_applicable: list[str] | tuple[str, ...] = (),
+) -> int:
     """
     Calcula el score global ponderado a partir de los scores por dimensión.
 
-    global_score = Σ (score_dimensión * peso_dimensión / 100)
+    global_score = Σ (score · peso) / Σ (pesos de las dimensiones que aplican)
+
+    Las dimensiones que no aplican a la llamada salen del denominador: su peso
+    se reparte entre las demás en proporción. Sin ninguna que no aplique, el
+    denominador es la suma de pesos de la rúbrica (100), y el cálculo es el de
+    siempre. Una dimensión de la rúbrica que la IA no puntuó, en cambio, sí
+    sigue en el denominador: cuenta como cero, igual que antes.
 
     Si una dimensión no tiene peso definido en la rúbrica, se ignora.
     El resultado se redondea a entero y se acota al rango 0-100.
     """
-    total = 0.0
-    for key, score in dimension_scores.items():
-        weight = rubric.get(key, 0.0)
-        total += score * weight / 100.0
-    return max(0, min(100, round(total)))
+    denominador = sum(
+        weight for key, weight in rubric.items() if key not in not_applicable
+    )
+    if denominador <= 0:
+        return 0
+    total = sum(
+        score * rubric.get(key, 0.0)
+        for key, score in dimension_scores.items()
+        if key not in not_applicable
+    )
+    return max(0, min(100, round(total / denominador)))

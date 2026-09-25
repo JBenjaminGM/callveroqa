@@ -6,6 +6,33 @@ Cambios relevantes. Formato: descripción (commit). Lo más nuevo arriba.
 > [`HISTORIA.md`](HISTORIA.md), movido tal cual: nombra el producto y la identidad
 > visual de entonces porque así era. Es historia, no estado.
 
+## Producto: criterios «no aplica»
+
+Una llamada de consulta de saldo puntuaba cero en «manejo de objeciones» porque no hubo
+objeciones, y cero en «promociones» porque no era de venta. La nota bajaba por algo que
+el asesor no tuvo ocasión de hacer. Es el punto 3.4 de [`COMPETENCIA.md`](COMPETENCIA.md)
+(lo que MaestroQA y Scorebuddy llaman preguntas «N/A»).
+
+- `Rúbrica` (**migración 0016**): cada categoría puede marcarse como «puede no aplicar»,
+  con una condición escrita por el jefe («solo si el cliente plantea una objeción»). La
+  migración la activa una sola vez en objeciones y promociones; si el jefe la quita,
+  ningún arranque se la vuelve a poner.
+- `IA`: el prompt solo ofrece `null` en esas categorías y le pide que explique por qué no
+  aplica. Lo que la IA deja en blanco en una categoría que **no** lo permite no se le
+  regala: cuenta como cero, igual que si la hubiera omitido.
+- `Nota global`: las categorías que no aplican salen del denominador y su peso se reparte
+  entre las demás. Sin ninguna «no aplica», la fórmula da exactamente lo mismo que antes.
+  Se guardan en `analyses.not_applicable`.
+- `Críticos`: un incumplimiento crítico en una categoría que la IA dio por no aplicable
+  es una contradicción, y no suspende la llamada.
+- `Revisión humana`: el jefe también puede marcar «no aplica» (en la revisión y en la
+  sesión a ciegas); se guarda omitiendo esa categoría, que la revisión ya ponderaba así.
+- `Interfaz`: el detalle de la llamada y el PDF enseñan las categorías que no aplicaron,
+  con su porqué, en vez de hacerlas desaparecer.
+- `Arreglo`: un análisis sin recomendaciones (la columna admite nulo) tumbaba el detalle
+  de la llamada con un 500.
+- `Tests`: 199 → **209**.
+
 ## Producto: coaching medible
 
 Hasta aquí el coaching era un acto de fe: el jefe hablaba con el asesor y nadie volvía

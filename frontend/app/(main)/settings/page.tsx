@@ -178,6 +178,8 @@ export default function SettingsPage() {
             enabled: c.enabled,
             critical: !!c.critical,
           })),
+          allow_na: !!d.allow_na,
+          na_condition: d.na_condition ?? '',
         })),
       );
     }
@@ -309,6 +311,8 @@ export default function SettingsPage() {
           enabled: c.enabled,
           critical: !!c.critical,
         })),
+      allow_na: !!d.allow_na,
+      na_condition: d.allow_na ? d.na_condition?.trim() || null : null,
     }));
     try {
       await updateRubric.mutateAsync(payload);
@@ -524,6 +528,41 @@ export default function SettingsPage() {
                         <Plus size={14} />
                         Añadir subcategoría
                       </button>
+                    </div>
+
+                    {/* «No aplica»: sin esto, una llamada sin objeciones puntúa
+                        cero en «manejo de objeciones» y baja la nota por algo
+                        que el asesor no tuvo ocasión de hacer. */}
+                    <div className="mt-3 border-t border-border pt-3 pl-1">
+                      <label className="flex w-fit cursor-pointer items-center gap-2 text-small text-text-primary">
+                        <input
+                          type="checkbox"
+                          checked={!!dim.allow_na}
+                          onChange={(e) =>
+                            patchDim(i, { allow_na: e.target.checked })
+                          }
+                          className="accent-[var(--accent-primary)]"
+                        />
+                        Puede no aplicar a una llamada
+                      </label>
+                      {dim.allow_na && (
+                        <>
+                          <Input
+                            value={dim.na_condition ?? ''}
+                            placeholder="Cuándo no aplica. Ej.: solo si el cliente plantea una objeción."
+                            onChange={(e) =>
+                              patchDim(i, { na_condition: e.target.value })
+                            }
+                            maxLength={500}
+                            className="mt-2 !py-1.5 text-small"
+                            aria-label={`Cuándo no aplica ${dim.dimension_name || 'la categoría'}`}
+                          />
+                          <p className="mt-1 text-[12px] text-text-muted">
+                            Si la IA decide que no aplica, esta categoría no
+                            puntúa y su peso se reparte entre las demás.
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}

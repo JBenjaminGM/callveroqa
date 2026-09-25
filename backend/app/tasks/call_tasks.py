@@ -34,6 +34,7 @@ from app.models.settings import RubricConfig
 from app.models.transcription import Transcription
 from app.prompts import get_analysis_prompt
 from app.services.analysis_service import calculate_global_score, get_analysis_provider
+from app.services import topic_service
 from app.services.evidence_service import (
     apply_auto_fail,
     normalize_critical_failures,
@@ -162,7 +163,11 @@ def _run_pipeline(db, call: Call) -> None:
             product_note = build_product_note_text(campaign) or None
 
     prompt = get_analysis_prompt(
-        masked_segments, rubric_list, call.language, product_note=product_note
+        masked_segments,
+        rubric_list,
+        call.language,
+        product_note=product_note,
+        topic_catalog=topic_service.catalog(db),
     )
     provider = get_analysis_provider()
     analysis_result = asyncio.run(provider.analyze(prompt))
@@ -178,6 +183,9 @@ def _run_pipeline(db, call: Call) -> None:
                 role = str(diarization[i]).strip().lower()
                 seg["speaker"] = "agent" if role.startswith("a") else "customer"
         transcription.segments = list(segments)  # reasignar para detectar el cambio
+
+    # Motivo de la llamada, unificado con los motivos ya existentes.
+    call.topic = topic_service.resolve_topic(db, analysis_result.get("topic"))
 
     # Métricas de conversación deterministas (sobre los segmentos ya diarizados).
     call.conversation_metrics = compute_conversation_metrics(

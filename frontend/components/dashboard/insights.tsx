@@ -33,6 +33,7 @@ import type {
   ConversationSummary,
   DashboardAlert,
   RecommendationStat,
+  TopicStat,
 } from '@/types';
 
 /* --------------------------------------------------------------------------- *
@@ -564,6 +565,97 @@ export function TeamRadar({ averages }: { averages: Record<string, number> }) {
     <Card>
       <CardTitle className="mb-2">Dimensiones del <span className="hl">equipo</span></CardTitle>
       <ScoreRadar scores={averages} seriesLabel="Equipo" />
+    </Card>
+  );
+}
+
+/* --------------------------------------------------------------------------- *
+ * Por qué llaman — volumen y calidad por motivo de llamada
+ * --------------------------------------------------------------------------- */
+
+/**
+ * El resto del panel mide al equipo; esta tabla mide **a qué se enfrenta**.
+ *
+ * Un motivo con mucho volumen y mala nota no se arregla con coaching: es un
+ * proceso o un producto que hay que tocar antes. Por eso ordena por volumen y
+ * no por nota, y por eso la barra representa cuánto pesa ese motivo sobre el
+ * total: lo primero que hay que ver es de qué tamaño es el problema.
+ */
+export function TopicsPanel({ topics }: { topics: TopicStat[] }) {
+  if (topics.length === 0) {
+    return (
+      <Card>
+        <CardTitle className="mb-1">Por qué <span className="hl">llaman</span></CardTitle>
+        <p className="text-small text-text-secondary">
+          Todavía no hay motivos detectados. Se rellenan solos conforme se
+          analizan llamadas nuevas.
+        </p>
+      </Card>
+    );
+  }
+
+  const total = topics.reduce((suma, t) => suma + t.total_calls, 0);
+
+  return (
+    <Card>
+      <CardTitle className="mb-1">Por qué <span className="hl">llaman</span></CardTitle>
+      <p className="mb-3 text-small text-text-secondary">
+        Motivos detectados en las llamadas del periodo, de mayor a menor volumen.
+      </p>
+      <table className="w-full text-small">
+        <thead>
+          <tr className="border-b border-border text-left text-text-secondary">
+            <th className="w-[40%] pb-1 pr-3 font-semibold">Motivo</th>
+            <th className="pb-1 pr-3 font-semibold">Vol.</th>
+            <th className="w-[26%] pb-1 pr-3 font-semibold">Peso</th>
+            <th className="pb-1 pr-3 font-semibold">Score</th>
+            <th className="pb-1 font-semibold">% rojas</th>
+          </tr>
+        </thead>
+        <tbody>
+          {topics.map((t) => (
+            <tr key={t.topic}>
+              <td className="max-w-[12rem] truncate py-1.5 pr-3 font-medium text-text-primary">
+                <span className="flex items-center gap-1.5">
+                  {t.topic}
+                  {t.critical_calls > 0 && (
+                    <span
+                      title={`${t.critical_calls} suspendida(s) por criterio crítico`}
+                      className="text-danger"
+                    >
+                      <OctagonX size={12} aria-hidden />
+                    </span>
+                  )}
+                </span>
+              </td>
+              <td className="py-1.5 pr-3 font-mono tabular-nums text-text-secondary">
+                {t.total_calls}
+              </td>
+              <td className="py-1.5 pr-3">
+                <MiniProgress value={total ? (t.total_calls / total) * 100 : 0} />
+              </td>
+              <td className="py-1.5 pr-3">
+                <span
+                  className="font-mono font-semibold tabular-nums"
+                  style={{ color: scoreVar(t.avg_score) }}
+                >
+                  {t.avg_score.toFixed(0)}
+                </span>
+              </td>
+              <td className="py-1.5">
+                <span
+                  className="font-mono font-semibold tabular-nums"
+                  style={{
+                    color: t.red_pct > 25 ? 'var(--danger)' : 'var(--text-secondary)',
+                  }}
+                >
+                  {t.red_pct}%
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </Card>
   );
 }

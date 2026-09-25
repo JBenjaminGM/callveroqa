@@ -370,6 +370,18 @@ CRITICOS: dict[str, list[dict]] = {
     ],
 }
 
+# Motivo de cada llamada (por qué llama o se llama al cliente). Es la etiqueta
+# que agrupa el panel "Por qué llaman": corta, reutilizable y la misma para la
+# versión buena y la floja de cada guion, que es lo que permite comparar.
+MOTIVOS = {
+    "tarjetas_alta": "Oferta de tarjeta Premium",
+    "tarjetas_baja": "Oferta de tarjeta Premium",
+    "prestamos_alta": "Consulta de préstamo personal",
+    "prestamos_baja": "Consulta de préstamo personal",
+    "seguros_alta": "Oferta de seguro de protección",
+    "seguros_baja": "Oferta de seguro de protección",
+}
+
 # Criterios que la demo necesita marcados como críticos en la rúbrica.
 CRITERIOS_CRITICOS_DEMO = {
     "compliance": ["Disclaimers obligatorios", "Sin afirmaciones prohibidas"],

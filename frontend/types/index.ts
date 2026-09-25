@@ -533,3 +533,13 @@ export interface CreatedUser {
   user: AccountUser;
   generated_password?: string | null;
 }
+
+/** Un motivo de llamada con su volumen y su calidad. */
+export interface TopicStat {
+  topic: string;
+  total_calls: number;
+  avg_score: number;
+  red_calls: number;
+  red_pct: number;
+  critical_calls: number;
+}

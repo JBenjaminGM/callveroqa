@@ -366,6 +366,21 @@ def marcar_criterios_criticos(db) -> None:
         print(f"[demo] {cambios} criterios de cumplimiento marcados como críticos.")
 
 
+def completar_motivos(db) -> int:
+    """Pone el motivo a llamadas de demo sembradas antes de que existiera."""
+    por_audio = {conv["audio"]: clave for clave, conv in guiones.CONVERSACIONES.items()}
+    completadas = 0
+    for call in db.scalars(select(Call).where(Call.topic.is_(None))):
+        nombre = call.audio_filename or ""
+        clave = next((c for audio, c in por_audio.items() if nombre.endswith(audio)), None)
+        if clave is None:
+            continue
+        call.topic = guiones.MOTIVOS.get(clave)
+        completadas += 1
+    db.commit()
+    return completadas
+
+
 def completar_evidencia(db) -> int:
     """
     Añade evidencia y criterios críticos a llamadas de demo sembradas antes de
@@ -422,6 +437,9 @@ def sembrar() -> None:
             completadas = completar_evidencia(db)
             if completadas:
                 print(f"[demo] Evidencia y criterios críticos añadidos a {completadas} llamadas.")
+            motivos = completar_motivos(db)
+            if motivos:
+                print(f"[demo] Motivo de llamada añadido a {motivos} llamadas.")
             return
 
         admin = db.scalar(select(User).order_by(User.id))
@@ -476,6 +494,7 @@ def sembrar() -> None:
                 created_at=momento,
                 processed_at=momento + timedelta(minutes=2),
                 conversation_metrics=compute_conversation_metrics(segmentos, duracion),
+                topic=guiones.MOTIVOS.get(clave),
             )
             db.add(llamada)
             db.flush()

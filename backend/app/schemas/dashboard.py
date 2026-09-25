@@ -157,3 +157,14 @@ class AgentDashboardOut(BaseModel):
     strengths: list[str]
     improvement_areas: list[str]
     timeline: list[TimelinePoint]
+
+
+class TopicStat(BaseModel):
+    """Un motivo de llamada con su volumen y su calidad."""
+
+    topic: str
+    total_calls: int
+    avg_score: float
+    red_calls: int
+    red_pct: float
+    critical_calls: int = 0

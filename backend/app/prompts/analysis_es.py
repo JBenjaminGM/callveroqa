@@ -2,7 +2,10 @@
 
 
 def build_analysis_prompt(
-    segments: list[dict], rubric: list[dict], product_note: str | None = None
+    segments: list[dict],
+    rubric: list[dict],
+    product_note: str | None = None,
+    topic_catalog: list[str] | None = None,
 ) -> str:
     """
     Construye el prompt que se envía al LLM para analizar una llamada.
@@ -47,6 +50,15 @@ def build_analysis_prompt(
             "claridad que se incumplieron. Ante la duda, no lo reportes."
         )
 
+    # Catalogo de motivos ya usados: se le ensena para que REUTILICE en vez de
+    # inventar una variante, que es lo que rompe la agregacion del panel.
+    topic_block = ""
+    if topic_catalog:
+        topic_block = (
+            "\n\nMOTIVOS YA USADOS (reutiliza uno EXACTO si encaja; solo inventa "
+            "si ninguno sirve):\n- " + "\n- ".join(topic_catalog)
+        )
+
     transcript = "\n".join(
         f"[{i}] {seg.get('text', '')}" for i, seg in enumerate(segments)
     )
@@ -74,7 +86,7 @@ TRANSCRIPCIÓN (cada línea es un segmento numerado [i]):
 
 RÚBRICA DE EVALUACIÓN (score 0-100 por dimensión):
 
-{rubric_block}{critical_block}{product_note_block}
+{rubric_block}{critical_block}{product_note_block}{topic_block}
 
 INSTRUCCIONES:
 - Evalúa CADA dimensión de la rúbrica de 0 a 100, teniendo en cuenta ÚNICAMENTE los
@@ -96,6 +108,10 @@ INSTRUCCIONES:
 - Genera 3-5 recomendaciones accionables priorizadas (high/medium/low). El campo
   "dimension" de cada recomendación debe ser una de las claves de la rúbrica.
 - El resumen debe ser de 2-3 frases.
+- MOTIVO DE LA LLAMADA: en "topic", por qué llama el cliente (o por qué se le
+  llama), en 2-5 palabras, como etiqueta reutilizable y no como frase. Ejemplos:
+  "Oferta de tarjeta", "Reclamo por cobro", "Consulta de saldo". Si alguno de los
+  motivos ya usados encaja, escríbelo EXACTAMENTE igual.
 - IDENTIFICA EL NOMBRE DEL EJECUTIVO: al inicio el ejecutivo casi siempre se presenta
   ("Le atiende Juan Pérez", "Mi nombre es..."). Extrae ese nombre en
   "detected_agent_name"; si no estás seguro, usa null.
@@ -104,6 +120,7 @@ Responde EXCLUSIVAMENTE con un JSON válido con esta estructura exacta:
 
 {{
   "detected_agent_name": "<nombre del ejecutivo o null>",
+  "topic": "<motivo de la llamada, 2-5 palabras>",
   "diarization": ["agent o customer, un elemento por segmento, {n} en total"],
   "dimension_scores": {{
 {score_lines}

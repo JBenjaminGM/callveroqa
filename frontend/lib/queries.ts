@@ -32,6 +32,7 @@ import type {
   ListenSuggestion,
   PendingCall,
   RecommendationStat,
+  TopicStat,
   Review,
   ReviewInput,
   RubricDimension,
@@ -744,5 +745,18 @@ export function useRunRetention() {
       return data.audios_deleted;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['calls'] }),
+  });
+}
+
+/** Por qué llaman los clientes: volumen y calidad por motivo. */
+export function useTopics(filters: DashboardFilters) {
+  return useQuery({
+    queryKey: ['dashboard-topics', filters],
+    queryFn: async () => {
+      const { data } = await api.get<TopicStat[]>('/dashboard/topics', {
+        params: filters,
+      });
+      return data;
+    },
   });
 }

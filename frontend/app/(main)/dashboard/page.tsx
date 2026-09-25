@@ -10,6 +10,7 @@ import {
   useDashboardByCampaign,
   useDashboardSummary,
   useSettings,
+  useTopics,
   useTopRecommendations,
 } from '@/lib/queries';
 import { api, getErrorMessage } from '@/lib/api';
@@ -29,6 +30,7 @@ import {
   ScoreDistribution,
   TeamRadar,
   TopProblems,
+  TopicsPanel,
 } from '@/components/dashboard/insights';
 import { WhoToListen } from '@/components/coaching/who-to-listen';
 import { ScoreBadge } from '@/components/ui/badge';
@@ -68,6 +70,10 @@ export default function DashboardPage() {
   const { data: alerts } = useDashboardAlerts(dateFilters);
   const { data: byCampaign } = useDashboardByCampaign(dateFilters);
   const { data: topProblems } = useTopRecommendations({
+    ...dateFilters,
+    campaign: campaign || undefined,
+  });
+  const { data: topics } = useTopics({
     ...dateFilters,
     campaign: campaign || undefined,
   });
@@ -276,6 +282,7 @@ export default function DashboardPage() {
                 {byCampaign && <CampaignKpiTable rows={byCampaign} />}
                 <TeamRadar averages={data.team_dimension_averages} />
               </div>
+              {topics && <TopicsPanel topics={topics} />}
             </section>
 
             {/* ---------- Señales ---------- */}

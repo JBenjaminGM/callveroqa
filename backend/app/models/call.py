@@ -66,6 +66,10 @@ class Call(Base):
         ForeignKey("campaigns.id"), nullable=True, index=True
     )
     call_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Motivo por el que llamó el cliente, detectado por la IA y normalizado
+    # contra el catálogo existente (ver services/topic_service.py). No es lo
+    # mismo que `call_reason`, que es el comentario de quien subió el audio.
+    topic: Mapped[str | None] = mapped_column(String(60), nullable=True, index=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), index=True

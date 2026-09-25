@@ -2,7 +2,10 @@
 
 
 def build_analysis_prompt(
-    segments: list[dict], rubric: list[dict], product_note: str | None = None
+    segments: list[dict],
+    rubric: list[dict],
+    product_note: str | None = None,
+    topic_catalog: list[str] | None = None,
 ) -> str:
     """Build the prompt sent to the LLM to analyze a call (English version).
 
@@ -45,6 +48,14 @@ def build_analysis_prompt(
             "shows they were breached. When in doubt, do not report."
         )
 
+    # Existing topics, so the model REUSES one instead of inventing a variant.
+    topic_block = ""
+    if topic_catalog:
+        topic_block = (
+            "\n\nTOPICS ALREADY IN USE (reuse one EXACTLY if it fits; only invent "
+            "a new one if none does):\n- " + "\n- ".join(topic_catalog)
+        )
+
     transcript = "\n".join(
         f"[{i}] {seg.get('text', '')}" for i, seg in enumerate(segments)
     )
@@ -72,7 +83,7 @@ TRANSCRIPT (each line is a numbered segment [i]):
 
 EVALUATION RUBRIC (score 0-100 per dimension):
 
-{rubric_block}{critical_block}{product_note_block}
+{rubric_block}{critical_block}{product_note_block}{topic_block}
 
 INSTRUCTIONS:
 - Score EACH rubric dimension 0-100, considering ONLY the sub-criteria listed in it.
@@ -93,12 +104,16 @@ INSTRUCTIONS:
 - Generate 3-5 prioritized actionable recommendations (high/medium/low). Each
   recommendation's "dimension" must be one of the rubric keys.
 - The summary must be 2-3 sentences.
+- CALL TOPIC: in "topic", why the customer is calling (or being called), in 2-5
+  words, as a reusable label and not a sentence. If one of the topics already in
+  use fits, write it EXACTLY as listed.
 - IDENTIFY THE AGENT'S NAME into "detected_agent_name"; use null if unsure.
 
 Respond EXCLUSIVELY with valid JSON in this exact structure:
 
 {{
   "detected_agent_name": "<agent name or null>",
+  "topic": "<call topic, 2-5 words>",
   "diarization": ["agent or customer, one element per segment, {n} total"],
   "dimension_scores": {{
 {score_lines}

@@ -17,6 +17,7 @@ from app.models.call import Call
 from app.models.user import User
 from app.routers.config import read_qa_thresholds
 from app.schemas.dashboard import (
+    TopicStat,
     AgentDashboardOut,
     AgentPercentileOut,
     AgentRecommendationsOut,
@@ -31,6 +32,7 @@ from app.schemas.dashboard import (
     TimelinePoint,
 )
 from app.services import dashboard_service as ds
+from app.services import topic_service
 from app.services.name_matching import normalize_name
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
@@ -247,6 +249,34 @@ def dashboard_top_recommendations(
     start, end = ds.resolve_window(period, date_from, date_to)
     rows = ds.done_analyses(db, start, end=end, campaign=campaign)
     return [RecommendationStat(**r) for r in ds.aggregate_recommendations(rows, limit)]
+
+
+@router.get("/topics", response_model=list[TopicStat])
+def dashboard_topics(
+    period: str = Query(default="30d", pattern="^(7d|30d|90d)$"),
+    campaign: str | None = Query(default=None),
+    date_from: date | None = Query(default=None),
+    date_to: date | None = Query(default=None),
+    limit: int = Query(default=10, ge=1, le=50),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_manager),
+):
+    """
+    Por qué llaman los clientes, con la calidad de cada motivo.
+
+    El resto del panel mide al equipo; esto mide **a qué se enfrenta**. Un motivo
+    con mucho volumen y mala nota no es un problema de coaching: es un proceso o
+    un producto que hay que arreglar antes.
+    """
+    start, end = ds.resolve_window(period, date_from, date_to)
+    rows = ds.done_analyses(db, start, end=end, campaign=campaign)
+    thresholds = read_qa_thresholds(db)
+    return [
+        TopicStat(**t)
+        for t in topic_service.topic_breakdown(
+            rows, thresholds["qa_red_call_threshold"], limit
+        )
+    ]
 
 
 @router.get("/agents/{agent_id}/percentile", response_model=AgentPercentileOut)

@@ -6,6 +6,9 @@
 > crédito o de una cuenta externa está separado a propósito: no es código.
 >
 > Estado: ✅ hecho · 🔧 en curso · ⬜ pendiente · 💳 requiere decisión de gasto
+>
+> **Los pasos exactos de lo que te toca a ti están en
+> [`PASOS_DEL_DUENO.md`](PASOS_DEL_DUENO.md).**
 
 ---
 
@@ -24,11 +27,11 @@
 
 | # | Qué | Estado |
 |---|---|---|
-| 2.1 | Copia de seguridad diaria verificada (workflow existente + secreto `DATABASE_URL`) | ⬜ 💳 |
+| 2.1 | Copia de seguridad diaria verificada. **Nunca había funcionado** (`pg_dump` 16 contra PostgreSQL 18). Arreglo cifrado listo en `infra/backup-cifrado`; falta el scope `workflow` y el secreto `BACKUP_PASSPHRASE` | 🔧 |
 | 2.2 | `/health` que compruebe también la base de datos, no solo que el proceso vive | ✅ |
 | 2.3 | Identificador de petición en los logs para poder rastrear un error concreto | ✅ |
 | 2.4 | Página de error y estado de la API para el usuario final (cold start del plan gratis) | ✅ ya existía |
-| 2.5 | Monitorización de errores (Sentry o similar) | ⬜ 💳 |
+| 2.5 | Monitorización de errores (Sentry). Código listo y apagado; falta el `SENTRY_DSN` (plan gratuito) | ✅ código · 🔑 DSN |
 
 ## 3. Producto: lo que hace que elijan esto y no a la competencia
 

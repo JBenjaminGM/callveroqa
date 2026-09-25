@@ -49,6 +49,14 @@ export default function CallsPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [soloCriticas, setSoloCriticas] = useState(false);
+  // `?critical=true` llega desde la tarjeta de suspendidas del panel. Se lee en
+  // un efecto y no con useSearchParams, que obliga a envolver la página en
+  // Suspense para que el build estático no falle.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('critical') === 'true') {
+      setSoloCriticas(true);
+    }
+  }, []);
   const [busqueda, setBusqueda] = useState('');
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);

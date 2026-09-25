@@ -51,10 +51,10 @@ lanzadores llevan la ruta incrustada y fallan en silencio.
 |---|---|
 | Repositorio | `github.com/JBenjaminGM/callveroqa` (espejo limpio: `callveroqa-public`) |
 | Rama | `main`, al día con `origin` |
-| Tests backend | **209**, todos en verde |
+| Tests backend | **216**, todos en verde |
 | Migraciones | 0001–0016 |
-| Producción | Render + Vercel, desplegado y verificado el 24 sep 2026 |
-| Sin subir | rama `infra/renombrar-servicios` (ver abajo) |
+| Producción | Render + Vercel, desplegado y verificado el 25 sep 2026 |
+| Sin subir | `infra/backup-cifrado` (necesita el scope `workflow`) y `infra/renombrar-servicios` (aparcada) |
 
 **Se hace `push` a `main` sin preguntar** (el usuario lo pidió expresamente), sabiendo que
 despliega solo: Vercel reconstruye el frontend y Render aplica migraciones y vuelve a
@@ -64,22 +64,24 @@ sembrar.
 
 ## Lo pendiente que NO es código (esto sí bloquea)
 
-1. **Scope `workflow` de GitHub.** El token no puede modificar `.github/workflows`, así
-   que los dos workflows conservan el nombre anterior en comentarios y en la URL del
-   ping. Se concede con `gh auth refresh -h github.com -s workflow` aprobando el código
-   en <https://github.com/login/device>.
-2. **Renombrar los servicios en Render y el proyecto en Vercel.** Está preparado en la
-   rama **`infra/renombrar-servicios`** y **no se subió a propósito**: cambiar los
-   nombres en `render.yaml` no renombra nada — Render trata los servicios por nombre,
-   crearía unos nuevos y dejaría huérfanas la base de datos y la `GROQ_API_KEY`, que solo
-   vive en el panel. Orden correcto: renombrar en los paneles de Render y Vercel →
-   actualizar allí `CORS_ORIGINS` y `NEXT_PUBLIC_API_URL` → conceder el scope → subir esa
-   rama. Hasta entonces las URLs vivas siguen siendo `callaibrate-api.onrender.com` y
-   `callaibrate.vercel.app`, aunque la documentación ya nombra las nuevas.
-3. **Decisiones de gasto** (`PLAN_PRODUCCION.md` §4): plan de pago de Render —la base
-   gratuita caduca a los 30 días y ya se perdieron los datos una vez—, cuenta de S3 para
-   que los audios sobrevivan a un despliegue, `GROQ_API_KEY` válida en Render, dominio
-   propio y el secreto `DATABASE_URL` en GitHub para que corran las copias de seguridad.
+Está entero, paso a paso y por urgencia, en
+**[`PASOS_DEL_DUENO.md`](PASOS_DEL_DUENO.md)**. En corto:
+
+1. 🔴 **Base de datos de pago en Render** antes de ~8 oct: la gratuita se borra a los 30
+   días y ya pasó una vez.
+2. 🔴 **Scope `workflow` de GitHub + secreto `BACKUP_PASSPHRASE`.** Las copias de
+   seguridad **nunca han funcionado** (`pg_dump` 16 contra PostgreSQL 18). El arreglo,
+   que además cifra la copia, está en la rama local **`infra/backup-cifrado`** y no se
+   puede subir sin ese scope.
+3. 🟠 **`GROQ_API_KEY` válida en Render**, **repositorio privado** (hoy es público; antes
+   hay que cambiar el keepalive por UptimeRobot, o se acaban los minutos de Actions) y
+   **S3** para los audios.
+4. 🟡 **Sentry** (el código ya está, falta el DSN), **dominio propio** (recomendado en vez
+   de renombrar servicios) y **Compliance**.
+
+Las URLs vivas siguen siendo `callaibrate-api.onrender.com` y `callaibrate.vercel.app`.
+La rama `infra/renombrar-servicios` queda aparcada: con dominio propio no hace falta, y
+cambiar el nombre de un servicio de Render no cambia su URL.
 
 ---
 
@@ -126,6 +128,18 @@ real**: en local no hay `GROQ_API_KEY`, así que se probó el pipeline completo 
 PostgreSQL con la respuesta de la IA simulada. Lo primero con una clave válida es subir
 una llamada de consulta (sin venta ni objeciones) y comprobar que la IA devuelve `null`
 en esas dos y nota en el resto.
+
+**Suspendidas por asesor y tendencia** (`GET /dashboard/critical`, tarjeta «Llamadas
+suspendidas»): serie semanal, tasa por asesor con su criterio más incumplido y dos
+alertas nuevas — asesor que suspende de forma repetida y suspendidas al alza. Las
+alertas de patrón van antes que las de llamada suelta dentro de cada severidad.
+
+**Operación:** Sentry integrado y apagado hasta que haya `SENTRY_DSN` (sin datos
+personales: un test cazó que por defecto enviaba el token en las variables locales). Y
+tres fallos que solo se veían contra el sistema real: el 500 salía con `request_id:
+null`, **la demo pública no tenía audio** (el disco de Render se vacía en cada
+despliegue; ahora el seed repone los audios en cada arranque) y **la copia de seguridad
+nunca había funcionado**.
 
 **Dos fallos que solo aparecieron probando contra el sistema real:** el login limitaba
 cinco intentos **por IP** —y un call center entero sale por una sola IP pública, así que
@@ -239,9 +253,7 @@ El detalle está en el `CHANGELOG.md`. Lo que conviene saber para no deshacerlo:
 El orden está en **[`PLAN_PRODUCCION.md`](PLAN_PRODUCCION.md)**. Lo que queda por
 programar, de más a menos valor:
 
-1. **Alertas de críticos por asesor y tendencia** (ya existe la alerta por llamada y el
-   porcentaje por campaña; falta la serie temporal).
-2. **Multi-cliente** (3.5): solo si se vende a más de una empresa. Es una reforma grande
+1. **Multi-cliente** (3.5): solo si se vende a más de una empresa. Es una reforma grande
    —hay que llevar el identificador de cliente a todas las tablas y consultas— y **no
    hace falta** para vender una instalación a un banco.
 
@@ -257,7 +269,7 @@ Dos avisos si retomas esto dentro de un tiempo:
 
 ## Cómo verificar que todo sigue bien
 
-Tests del backend (209):
+Tests del backend (216):
 
 ```bash
 cd backend && ./.venv/Scripts/python.exe -m pytest -q

@@ -7,7 +7,7 @@
 **CallVeroQA** — *Calidad verificada en cada llamada.* Plataforma de QA
 automatizado para call centers del sector banca. Desplegada en vivo:
 
-- 🌐 Frontend: https://callveroqa.vercel.app · Backend: https://callveroqa-api.onrender.com
+- 🌐 Frontend: https://callaibrate.vercel.app · Backend: https://callaibrate-api.onrender.com (los nombres `callveroqa-*` aún no existen; ver `PASOS_DEL_DUENO.md` §8)
 - 👤 Cuentas sembradas: `admin@callveroqa.com`, `jefe@callveroqa.com` y un asesor por ejecutivo demo. **Las contraseñas se generan al azar y se imprimen una vez** (`docker compose logs api`).
 
 > Dos repos: **`callveroqa`** (completo, fuente de verdad — este) y **`callveroqa-public`**
@@ -26,6 +26,7 @@ automatizado para call centers del sector banca. Desplegada en vivo:
 | Ver de dónde viene el proyecto, en orden y en lenguaje normal | `HISTORIA.md` |
 | Ver quién más resuelve esto, qué nos falta y qué viene después | `COMPETENCIA.md` |
 | Ver qué falta para vender y en qué orden | `PLAN_PRODUCCION.md` |
+| **Ver lo que tiene que hacer el dueño** (cuentas, pagos, permisos), paso a paso | **`PASOS_DEL_DUENO.md`** ⭐ |
 | Ver el estado actual, casos de uso, reglas de negocio y lo pendiente | `ESTADO_DEL_PROYECTO.md` |
 | Ver el historial de cambios | `CHANGELOG.md` |
 | **Publicar / desplegar gratis** | `DEPLOY_GRATIS.md` |

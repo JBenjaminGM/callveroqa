@@ -619,3 +619,35 @@ export interface CoachingSuggestion {
   gap?: number | null;
   calls: number;
 }
+
+/* -------------------- Suspendidas por criterio crítico ------------------- */
+
+export interface CriticalWeek {
+  week_start: string;
+  total_calls: number;
+  critical_calls: number;
+  critical_pct: number;
+}
+
+export interface CriticalAgent {
+  agent_id: number;
+  agent_name: string;
+  total_calls: number;
+  critical_calls: number;
+  critical_pct: number;
+  /** Tasa en cada mitad del periodo; nula si hubo pocas llamadas en una. */
+  first_half_pct?: number | null;
+  second_half_pct?: number | null;
+  top_criterion?: string | null;
+}
+
+export interface CriticalReport {
+  total_calls: number;
+  critical_calls: number;
+  critical_pct: number;
+  first_half_pct?: number | null;
+  second_half_pct?: number | null;
+  weekly: CriticalWeek[];
+  by_agent: CriticalAgent[];
+  top_criteria: { criterion: string; count: number }[];
+}

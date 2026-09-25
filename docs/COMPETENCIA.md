@@ -123,7 +123,7 @@ dejarla en blanco.
 |---|---|---|---|
 | ~~1~~ | ~~**Temas y motivos de llamada**~~ | **Hecho** (septiembre de 2026). | ✅ |
 | ~~2~~ | ~~**Coaching medible**~~ | **Hecho** (septiembre de 2026). | ✅ |
-| 3 | **Alertas de críticos** en el panel (tasa de suspendidas por campaña y asesor, tendencia) | Riesgo normativo visible de un vistazo. | 🟢 |
+| ~~3~~ | ~~**Alertas de críticos** por asesor y tendencia~~ | **Hecho** (septiembre de 2026). | ✅ |
 | ~~4~~ | ~~**Preguntas «N/A» o condicionales**~~ | **Hecho** (septiembre de 2026). | ✅ |
 | 5 | **Transcripción on-premise o Azure** para datos reales | Requisito de compliance antes de usar audios de clientes. | 🔴 |
 | 6 | Integración con telefonía (ingesta automática) | Elimina la subida manual. | 🔴 |

@@ -6,7 +6,9 @@
    diez tropiezos que hacen perder tiempo.
 2. **[`docs/PLAN_PRODUCCION.md`](docs/PLAN_PRODUCCION.md)** — qué falta para vender y en
    qué orden. **Es el documento que manda ahora.**
-3. **[`docs/AGENTS.md`](docs/AGENTS.md)** — arquitectura, mapa del repo, cómo
+3. **[`docs/PASOS_DEL_DUENO.md`](docs/PASOS_DEL_DUENO.md)** — lo que solo puede hacer
+   el usuario (cuentas, pagos, permisos), paso a paso. Si algo está bloqueado, está ahí.
+4. **[`docs/AGENTS.md`](docs/AGENTS.md)** — arquitectura, mapa del repo, cómo
    correr/testear/desplegar y los *gotchas*.
 
 Tu **memoria de proyecto** se carga sola (índice `MEMORY.md`). Docs en **[`docs/`](docs/)**.
@@ -33,7 +35,7 @@ Esenciales:
   `is_manager` / `require_manager` protegen lo de gestión.
 - **Campañas con nota de producto:** entidad `Campaign` (9 campos); se inyecta en el prompt.
 - **Trabajar en `C:\Users\master\dev\callveroqa`** (NO la copia de OneDrive).
-- **Tests:** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q` (209 tests). Migraciones 0001–0016.
+- **Tests:** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q` (216 tests). Migraciones 0001–0016.
 - **Desplegar:** `git push origin main` → Vercel + Render redepliegan solos. **`GROQ_API_KEY`
   en prod vive en el dashboard de Render (`sync: false`), no en el repo.**
 - **Dos repos:** privado `callveroqa` (completo) + público `callveroqa` (código limpio). Publicar

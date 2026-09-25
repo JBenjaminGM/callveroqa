@@ -6,6 +6,52 @@ Cambios relevantes. Formato: descripción (commit). Lo más nuevo arriba.
 > [`HISTORIA.md`](HISTORIA.md), movido tal cual: nombra el producto y la identidad
 > visual de entonces porque así era. Es historia, no estado.
 
+## Producto y operación: suspendidas por asesor, Sentry y tres fallos de producción
+
+**Suspendidas por criterio crítico, por asesor y en el tiempo.** La alerta por llamada
+ya existía; faltaba el patrón. Es el punto 3 del plan de [`COMPETENCIA.md`](COMPETENCIA.md).
+
+- `GET /dashboard/critical` [manager]: tasa del periodo, serie semanal, tasa por asesor
+  (con la de cada mitad del periodo y su criterio más incumplido) y criterios más
+  incumplidos.
+- `Alertas nuevas`: `critical_agent` (dos o más suspensiones de una persona en el
+  periodo) y `critical_trend` (la tasa sube 15 puntos o más entre la primera y la segunda
+  mitad, del equipo o de una persona). Con menos de 3 llamadas en una mitad no se mide.
+- `Orden de las alertas`: dentro de una severidad, primero los patrones (una persona o el
+  equipo) y después las llamadas sueltas. Ordenar solo por `value` los enterraba: mezcla
+  una nota con un porcentaje, y la subida de Lucía salía en el puesto 18.
+- `Interfaz`: tarjeta «Llamadas suspendidas» en el panel (barras por semana con el eje
+  ajustado a los datos, tabla por asesor con tendencia) y enlace a `/calls?critical=true`,
+  que ahora sí aplica el filtro al abrir. `DeltaPill` admite `higherIsBetter`: una subida
+  de suspendidas es roja y con la flecha hacia arriba.
+
+**Monitorización (Sentry).** Integrado y apagado mientras no haya `SENTRY_DSN`. Sin
+cuerpos de petición, sin datos personales y **sin variables locales**: por defecto Sentry
+las envía, y el test comprobó que ahí iba el token de la petición entero. Cada evento
+lleva el `request_id`.
+
+**Tres fallos que solo se veían contra producción:**
+
+- **El 500 salía con `request_id: null`** y sin cabecera `X-Request-ID`: el manejador
+  global corre fuera del middleware, cuando el id ya se ha limpiado. Ahora se responde
+  dentro del middleware.
+- **La demo pública no tenía audio.** El disco de Render se vacía en cada despliegue y
+  el seed solo copiaba los audios al crear las llamadas: sin reproductor ni saltos al
+  audio desde la evidencia. Ahora el seed los repone en cada arranque (y, con S3, los
+  sube allí solo).
+- **La copia de seguridad diaria nunca había funcionado**: `pg_dump` 16 contra
+  PostgreSQL 18. El arreglo (con la copia cifrada, porque el repositorio es público) está
+  en la rama `infra/backup-cifrado`, a falta del scope `workflow`.
+
+**Demo:** el seed corrige la fecha de sus propias sesiones de coaching si no enseñan el
+desenlace previsto (en producción, la de Lucía salía «funcionó»). Solo toca las que él
+mismo sembró.
+
+**Documentación:** [`PASOS_DEL_DUENO.md`](PASOS_DEL_DUENO.md), con todo lo que queda en
+manos del dueño, paso a paso.
+
+- `Tests`: 209 → **216**.
+
 ## Producto: criterios «no aplica»
 
 Una llamada de consulta de saldo puntuaba cero en «manejo de objeciones» porque no hubo

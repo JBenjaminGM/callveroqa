@@ -27,6 +27,7 @@ import type {
   CampaignExtractResult,
   CampaignKpi,
   CoachingSession,
+  CriticalReport,
   CoachingSessionInput,
   CoachingSuggestion,
   CreatedUser,
@@ -811,6 +812,19 @@ export function useTopics(filters: DashboardFilters) {
     queryKey: ['dashboard-topics', filters],
     queryFn: async () => {
       const { data } = await api.get<TopicStat[]>('/dashboard/topics', {
+        params: filters,
+      });
+      return data;
+    },
+  });
+}
+
+/** Suspendidas por criterio crítico: semana a semana, por asesor y por criterio. */
+export function useCriticalReport(filters: DashboardFilters) {
+  return useQuery({
+    queryKey: ['dashboard-critical', filters],
+    queryFn: async () => {
+      const { data } = await api.get<CriticalReport>('/dashboard/critical', {
         params: filters,
       });
       return data;

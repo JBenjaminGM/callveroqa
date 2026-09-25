@@ -18,6 +18,7 @@ from app.models.agent import Agent
 from app.models.analysis import Analysis
 from app.models.call import Call, CallStatus
 from app.models.settings import RubricConfig
+from app.services import critical_service
 from app.services.compliance_service import check_product_note_compliance
 from app.services.conversation_metrics_service import compute_conversation_metrics
 
@@ -285,6 +286,8 @@ def aggregate_recommendations(
 # Alertas accionables para el jefe
 # --------------------------------------------------------------------------- #
 _SEVERITY_RANK = {"high": 0, "medium": 1, "low": 2}
+# Alertas que hablan de una persona o del equipo, no de una llamada.
+_PATTERN_ALERTS = {"critical_trend", "critical_agent", "low_agent", "trend_drop"}
 
 
 def build_alerts(
@@ -388,6 +391,14 @@ def build_alerts(
             }
         )
 
+    # --- 3a bis: el patrón, no la llamada suelta: quién suspende de forma
+    # repetida y si la tasa de suspendidas sube (equipo o persona). ---
+    alerts.extend(
+        critical_service.critical_alerts(
+            critical_service.critical_report(rows, start, end, agent_names)
+        )
+    )
+
     # --- 3b: llamadas en banda roja (las más recientes, individuales) ---
     red_calls = sorted(
         [
@@ -445,7 +456,17 @@ def build_alerts(
                 }
             )
 
-    alerts.sort(key=lambda al: (_SEVERITY_RANK.get(al["severity"], 1), -(al.get("value") or 0)))
+    # Dentro de una severidad, primero los patrones (una persona o el equipo) y
+    # después las llamadas sueltas: un patrón resume muchas llamadas, y ordenar
+    # solo por `value` los enterraba, porque mezcla unidades (una nota frente a
+    # un porcentaje).
+    alerts.sort(
+        key=lambda al: (
+            _SEVERITY_RANK.get(al["severity"], 1),
+            0 if al["type"] in _PATTERN_ALERTS else 1,
+            -(al.get("value") or 0),
+        )
+    )
     return alerts[:limit]
 
 

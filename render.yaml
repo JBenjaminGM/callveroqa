@@ -51,3 +51,5 @@ services:
         sync: false
       - key: CORS_ORIGINS          # la URL de tu frontend en Vercel (la pones tu)
         sync: false
+      - key: SENTRY_DSN            # opcional: monitorizacion de errores (la pones tu)
+        sync: false

@@ -16,6 +16,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   TrendingDown,
+  TrendingUp,
   UserMinus,
   Volume2,
 } from 'lucide-react';
@@ -44,6 +45,8 @@ const ALERT_META: Record<
   { color: string; icon: typeof AlertTriangle; tone: string }
 > = {
   critical_failure: { color: 'var(--danger)', icon: OctagonX, tone: 'suspendida' },
+  critical_agent: { color: 'var(--danger)', icon: OctagonX, tone: 'suspende a menudo' },
+  critical_trend: { color: 'var(--danger)', icon: TrendingUp, tone: 'suspendidas al alza' },
   red_call: { color: 'var(--danger)', icon: AlertTriangle, tone: 'banda roja' },
   low_agent: { color: 'var(--warning)', icon: UserMinus, tone: 'bajo umbral' },
   trend_drop: { color: 'var(--warning)', icon: TrendingDown, tone: 'tendencia' },

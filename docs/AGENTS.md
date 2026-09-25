@@ -134,7 +134,7 @@ backend/
                        3 ejecutivos demo + 3 campañas demo (NO imprime contraseñas)
   scripts/seed_demo.py 67 llamadas en 90 días + 22 revisiones humanas + 6 respuestas de
                        asesores. Sin IA y con semilla fija: siempre da lo mismo y cuesta $0
-  tests/               209 tests (conftest = SQLite en memoria, todo lo externo mockeado)
+  tests/               216 tests (conftest = SQLite en memoria, todo lo externo mockeado)
   Dockerfile           multi-stage. CMD = alembic upgrade + seed + uvicorn (lo usa Render)
   .env / .env.example  (.env está gitignorado)
 frontend/
@@ -195,7 +195,7 @@ analítica global; helper `is_manager`); **asesor** solo ve **su propio rendimie
   (5 servicios: postgres, redis, api, worker, frontend)
   → app http://localhost:3000 · API http://localhost:8000/docs · login `admin@callveroqa.com` con la contraseña que imprime el seed (`docker compose logs api`).
   Apagar: `docker compose down`.
-- **Tests backend (209):** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q`
+- **Tests backend (216):** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q`
   (el venv ya tiene `requirements.txt`; SQLite en memoria, sin red).
 - **Build frontend:** desde `frontend/`, `npm run build`.
 - **Desplegar:** `git push origin main` (Vercel + Render redepliegan solos).
@@ -234,6 +234,10 @@ analítica global; helper `is_manager`); **asesor** solo ve **su propio rendimie
 - **Retención** (`services/retention_service.py`): caduca el **audio**, nunca la transcripción ni la nota. `retention_audio_days=0` (por defecto) = no caduca. La purga **no borra un archivo que otra llamada vigente comparte** — el seed de demostración reutiliza seis audios entre 67 llamadas y sin esa comprobación dejaba mudas llamadas recientes. Corre sola al listar llamadas, como mucho cada 6 h.
 - **Suprimir datos de una persona es de `require_admin`**, no de manager, y es irreversible: `DELETE /agents/{id}` solo desactiva; `DELETE /agents/{id}/data` borra todo lo suyo. No confundirlos.
 - **Motivos de llamada** (`services/topic_service.py`): el riesgo no es detectarlos, es que se fragmenten («cobro duplicado» / «Cobro duplicado» / «duplicidad de cobro» serían tres barras del panel). Por eso al analizar se le pasa a la IA el catálogo ya usado para que reutilice, y al guardar se normaliza (espacios, mayúsculas, acentos) y se busca un equivalente. **Si añades una fuente nueva de motivos, pásala por `resolve_topic`.**
+- **Alertas de suspendidas** (`services/critical_service.py`): `critical_agent` (≥2 suspensiones de una persona) y `critical_trend` (+15 pp entre mitades, con ≥3 llamadas por mitad). En `build_alerts`, dentro de cada severidad van primero los patrones (`_PATTERN_ALERTS`) y luego las llamadas sueltas: `value` mezcla unidades.
+- **Sentry** (`app/monitoring.py`): apagado sin `SENTRY_DSN`. `send_default_pii=False`, `max_request_body_size="never"` e **`include_local_variables=False`** (sin esto, el token viaja en las variables locales de la traza; lo comprueba `tests/test_monitoring.py`). El `request_id` se etiqueta al entrar la petición (`tag_request`), no al capturar: la deduplicación de Sentry descarta el segundo envío.
+- **Los 500 se responden dentro del middleware** (`_error_500` en `main.py`): el manejador global corre fuera, con el `request_id` ya limpio. El manejador queda como red de seguridad.
+- **Audios de la demo**: `seed_demo.restaurar_audios_demo` los repone en cada arranque si el almacenamiento no los tiene (disco efímero de Render; migración a S3). Solo toca llamadas con `responsible="Datos de demostración"`.
 - **«No aplica»** (migración 0016): `RubricConfig.allow_na` + `na_condition`; lo que no aplicó va en `Analysis.not_applicable` y **no** está en `dimension_scores`. `calculate_global_score(scores, weights, not_applicable)` saca esas dimensiones del denominador; sin «no aplica» da lo mismo que antes. Todo `null` que devuelve la IA pasa por `normalize_scores` (evidence_service): solo es «no aplica» si la rúbrica lo permite; si no, la dimensión queda sin nota y cuenta como cero. Un crítico en una dimensión «no aplica» se descarta. En la revisión humana, «no aplica» = omitir la clave (el global humano ya renormaliza).
 - **Coaching medible** (`services/coaching_session_service.py`): la medida **no se guarda**, se calcula al leer (ventana de 30 días a cada lado, mínimo 3 llamadas por lado). El veredicto se juzga sobre el **efecto neto** (cambio del asesor − cambio del resto del equipo en la misma dimensión y semanas); si hay equipo pero aún sin datos suficientes, el veredicto es `pending`, **no** el cambio bruto — solo se usa el bruto cuando nadie más puntúa esa dimensión. Se mide con la nota de la IA por dimensión, no con revisiones humanas. Las sesiones cuelgan de la ficha del ejecutivo, que la supresión conserva: `delete_agent_data` las borra a mano.
 - **Nunca se puede quedar la plataforma sin un administrador activo** (`services/user_service.py`), ni desactivarse uno mismo. La cuenta demo (`is_readonly`) no se administra desde la API.
@@ -273,7 +277,7 @@ admin/jefe (`require_manager`); `[scoped]` = el asesor solo ve lo suyo.
 - **agents:** `GET` lista [scoped: asesor solo su ficha], `POST` crear [manager], `POST /{id}/login` [manager], `GET /{id}` [scoped], `PUT`/`DELETE` [manager].
 - **campaigns:** `GET`/`POST`/`GET /{id}`/`PUT`/`DELETE` + `POST /extract` (PDF) + `POST /assist` (IA).
 - **calls:** `POST` subir + `POST /batch` [manager], `GET` lista [asesor solo las suyas; `?q=` busca en la transcripción y devuelve `match_snippet`, `?critical=true` solo suspendidas], `GET /{id}` [scoped], `GET /{id}/status`, `PUT /{id}/assign` [manager], `POST /{id}/retry` [manager], `GET /{id}/report.pdf` [scoped], `DELETE` [manager].
-- **dashboard:** `GET /topics` [manager] (motivos de llamada: volumen, nota, % rojas y suspendidas), `GET /summary` [manager, +`team_dimension_averages`/`avg_duration_seconds`/`red_call_count`/`conversation_summary`], `GET /campaigns` [manager], `GET /by-campaign` [manager], `GET /alerts` [manager], `GET /top-recommendations` [manager], `GET /agents/{id}` [scoped], `GET /agents/{id}/percentile` [scoped], `GET /agents/{id}/recommendations` [scoped].
+- **dashboard:** `GET /critical` [manager] (suspendidas: serie semanal, por asesor y por criterio), `GET /topics` [manager] (motivos de llamada: volumen, nota, % rojas y suspendidas), `GET /summary` [manager, +`team_dimension_averages`/`avg_duration_seconds`/`red_call_count`/`conversation_summary`], `GET /campaigns` [manager], `GET /by-campaign` [manager], `GET /alerts` [manager], `GET /top-recommendations` [manager], `GET /agents/{id}` [scoped], `GET /agents/{id}/percentile` [scoped], `GET /agents/{id}/recommendations` [scoped].
 - **coaching:** `GET /coaching/sessions` [scoped: el asesor solo las suyas; `?agent_id=`], `POST` [manager], `GET /coaching/sessions/{id}` [scoped], `PATCH`/`DELETE` [manager], `GET /coaching/suggestions/{agent_id}` [manager]. Además `who-to-listen`, `pending`, `my-pending` y el acuse en `/calls/{id}/acknowledgement`.
 - **users** [manager]: `GET`/`POST /users`, `PATCH /users/{id}` (nombre, rol, activo), `POST /users/{id}/reset-password`. El cambio de la contraseña propia es `POST /auth/change-password` (cualquiera).
 - **agents:** además `DELETE /agents/{id}/data` [**admin**] — supresión total de los datos de esa persona.
@@ -300,7 +304,7 @@ activable); `app_settings` (clave-valor: idioma + **umbrales QA `qa_*`**).
 
 ## 14. Tests
 
-209 tests en `backend/tests/` (pytest, SQLite en memoria, externos mockeados). Cubren
+216 tests en `backend/tests/` (pytest, SQLite en memoria, externos mockeados). Cubren
 auth, **roles y scoping (admin/jefe/asesor)**, agentes, **campañas**, cálculo de score,
 enmascarado, matching difuso, **idempotencia del reintento**, **modo inline**, **umbrales
 QA**, **creación del login del asesor**, la **analítica** (métricas de conversación,

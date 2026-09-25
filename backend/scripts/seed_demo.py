@@ -387,6 +387,58 @@ SESIONES_DE_COACHING = [
 ]
 
 
+def _fecha_que_cumple(agent_id, dimension, dia, esperado, filas):
+    """
+    El día más cercano a `dia` (hasta dos semanas a cada lado) en que una sesión
+    sobre esa dimensión da uno de los veredictos `esperado`. Si ninguno lo da,
+    se queda `dia`.
+    """
+    # Del día previsto hacia fuera: 0, -1, +1, -2, +2…
+    for desvio in sorted(range(-14, 15), key=abs):
+        prueba = CoachingSession(
+            agent_id=agent_id,
+            dimension_key=dimension,
+            held_on=dia + timedelta(days=desvio),
+        )
+        if css.measure(prueba, filas)["verdict"] in esperado:
+            return prueba.held_on
+    return dia
+
+
+def reparar_coaching_demo(db) -> int:
+    """
+    Corrige la fecha de las sesiones de demostración que no enseñan su desenlace.
+
+    Las primeras bases se sembraron antes de que el seed eligiera la fecha, y en
+    producción la sesión de Lucía salía como «funcionó». Solo toca las sesiones
+    que sembró este script, reconocidas por el asesor y el texto exacto de sus
+    notas: nada que haya registrado una persona. No borra nada.
+    """
+    ejecutivos = {a.id: a.name for a in db.scalars(select(Agent))}
+    guion = {(n, notas): (dim, esperado) for n, dim, _d, esperado, notas in SESIONES_DE_COACHING}
+    filas = None
+    reparadas = 0
+    for sesion in db.scalars(select(CoachingSession)):
+        clave = (ejecutivos.get(sesion.agent_id), sesion.notes)
+        if clave not in guion:
+            continue
+        dimension, esperado = guion[clave]
+        if not esperado or sesion.dimension_key != dimension:
+            continue
+        if filas is None:
+            filas = db.execute(
+                select(Call, Analysis).join(Analysis, Analysis.call_id == Call.id)
+            ).all()
+        if css.measure(sesion, filas)["verdict"] in esperado:
+            continue
+        nueva = _fecha_que_cumple(sesion.agent_id, dimension, sesion.held_on, esperado, filas)
+        if nueva != sesion.held_on:
+            sesion.held_on = nueva
+            reparadas += 1
+    db.commit()
+    return reparadas
+
+
 def sembrar_coaching(db) -> int:
     """
     Siembra sesiones de coaching con su antes y después.
@@ -417,16 +469,7 @@ def sembrar_coaching(db) -> int:
             continue
         dia = ultima - timedelta(days=dias)
         if esperado:
-            # Del día previsto hacia fuera: 0, -1, +1, -2, +2… hasta dos semanas.
-            for desvio in sorted(range(-14, 15), key=abs):
-                prueba = CoachingSession(
-                    agent_id=agente.id,
-                    dimension_key=dimension,
-                    held_on=dia + timedelta(days=desvio),
-                )
-                if css.measure(prueba, filas)["verdict"] in esperado:
-                    dia = prueba.held_on
-                    break
+            dia = _fecha_que_cumple(agente.id, dimension, dia, esperado, filas)
         previas = db.execute(
             select(Call, Analysis)
             .join(Analysis, Analysis.call_id == Call.id)
@@ -482,6 +525,60 @@ def marcar_criterios_criticos(db) -> None:
     db.commit()
     if cambios:
         print(f"[demo] {cambios} criterios de cumplimiento marcados como críticos.")
+
+
+def restaurar_audios_demo(db, almacen) -> int:
+    """
+    Vuelve a poner en el almacenamiento los audios de las llamadas de demostración
+    que ya no están.
+
+    En Render el disco se vacía en cada despliegue, y el seed solo copiaba los
+    audios al crear las llamadas: después del primer redespliegue la demo pública
+    se quedaba muda, sin reproductor ni saltos al audio desde la evidencia. Se
+    comprueba en cada arranque. De paso, si se cambia a S3, los audios de la demo
+    se suben allí solos.
+
+    Solo toca llamadas de demostración (su `responsible`) y no las que la
+    retención borró a propósito.
+    """
+    llamadas = list(
+        db.scalars(
+            select(Call).where(
+                Call.responsible == "Datos de demostración",
+                Call.audio_deleted_at.is_(None),
+            )
+        )
+    )
+    por_archivo = {conv["audio"]: conv for conv in guiones.CONVERSACIONES.values()}
+    reparadas = 0
+    nuevas: dict[str, str] = {}   # archivo de demo -> ruta en el almacenamiento
+    comprobadas: dict[str, bool] = {}   # ruta -> ¿se puede leer?
+    for llamada in llamadas:
+        archivo = next(
+            (a for a in por_archivo if (llamada.audio_filename or "").endswith(a)),
+            None,
+        )
+        if archivo is None:
+            continue
+        ruta = llamada.audio_url
+        if ruta not in comprobadas:
+            try:
+                almacen.load(ruta)
+                comprobadas[ruta] = True
+            except Exception:  # noqa: BLE001
+                comprobadas[ruta] = False
+        if comprobadas[ruta]:
+            continue
+        if archivo not in nuevas:
+            origen = CARPETA_AUDIO / archivo
+            if not origen.exists():
+                continue
+            # Una sola copia por grabación, compartida por todas sus llamadas.
+            nuevas[archivo] = almacen.save(origen.read_bytes(), archivo)
+        llamada.audio_url = nuevas[archivo]
+        reparadas += 1
+    db.commit()
+    return reparadas
 
 
 def completar_motivos(db) -> int:
@@ -561,6 +658,12 @@ def sembrar() -> None:
             sesiones = sembrar_coaching(db)
             if sesiones:
                 print(f"[demo] {sesiones} sesiones de coaching añadidas.")
+            audios = restaurar_audios_demo(db, almacen)
+            if audios:
+                print(f"[demo] Audio repuesto en {audios} llamadas de demostración.")
+            reparadas = reparar_coaching_demo(db)
+            if reparadas:
+                print(f"[demo] Fecha corregida en {reparadas} sesiones de coaching de demostración.")
             return
 
         admin = db.scalar(select(User).order_by(User.id))

@@ -272,11 +272,14 @@ export function DeltaPill({
   delta,
   suffix = '',
   neutralIsGood = true,
+  higherIsBetter = true,
   size = 'sm',
 }: {
   delta?: number | null;
   suffix?: string;
   neutralIsGood?: boolean;
+  /** False cuando subir es malo (p. ej. la tasa de suspendidas). */
+  higherIsBetter?: boolean;
   size?: 'sm' | 'xs';
 }) {
   if (delta == null || Number.isNaN(delta)) {
@@ -284,7 +287,7 @@ export function DeltaPill({
   }
   const up = delta > 0;
   const flat = delta === 0;
-  const good = flat ? neutralIsGood : up;
+  const good = flat ? neutralIsGood : up === higherIsBetter;
   const cls = good ? 'text-success bg-success/10' : 'text-danger bg-danger/10';
   // Icono dibujado, no un glifo unicode. El resto de la aplicación usa lucide:
   // una flecha de texto hereda la métrica de la fuente y se alinea distinto en

@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.limiter import limiter
+from app.monitoring import capture, init_sentry, tag_request
 from app.routers import (
     agents,
     auth,
@@ -102,6 +103,7 @@ def verify_production_secrets() -> None:
 
 
 verify_production_secrets()
+init_sentry()
 
 app = FastAPI(
     title="CallVeroQA - API",
@@ -133,8 +135,14 @@ async def add_prototype_header(request: Request, call_next):
     # Se respeta el id del proxy si viene, para poder cruzar logs con Render.
     request_id = request.headers.get("X-Request-ID") or uuid.uuid4().hex[:12]
     token = request_id_var.set(request_id)
+    tag_request(request_id)
     try:
         response = await call_next(request)
+    except Exception as exc:  # noqa: BLE001
+        # Se responde aquí y no en el manejador global: ese corre fuera de este
+        # middleware, cuando el id ya se ha limpiado, y el 500 salía con
+        # `request_id: null` y sin la cabecera X-Request-ID.
+        response = _error_500(request, exc, request_id)
     finally:
         request_id_var.reset(token)
     response.headers["X-Prototype-Notice"] = PROTOTYPE_NOTICE
@@ -150,11 +158,12 @@ async def add_prototype_header(request: Request, call_next):
     return response
 
 
-@app.exception_handler(Exception)
-async def unhandled_exception_handler(request: Request, exc: Exception):
-    """Captura errores no controlados y devuelve un mensaje claro en español."""
-    request_id = request_id_var.get()
-    logger.exception("Error no controlado en %s %s", request.method, request.url.path)
+def _error_500(request: Request, exc: Exception, request_id: str | None) -> JSONResponse:
+    """Registra un error no controlado y devuelve un mensaje claro en español."""
+    logger.exception(
+        "Error no controlado en %s %s", request.method, request.url.path, exc_info=exc
+    )
+    capture(exc, request_id)
     return JSONResponse(
         status_code=500,
         content={
@@ -168,6 +177,12 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
             **({"X-Request-ID": request_id} if request_id else {}),
         },
     )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    """Red de seguridad para lo que no pase por el middleware de arriba."""
+    return _error_500(request, exc, request_id_var.get())
 
 
 @app.get("/", tags=["health"])

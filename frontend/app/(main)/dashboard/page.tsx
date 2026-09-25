@@ -11,6 +11,7 @@ import {
   useDashboardSummary,
   useSettings,
   useTopics,
+  useCriticalReport,
   useTopRecommendations,
 } from '@/lib/queries';
 import { api, getErrorMessage } from '@/lib/api';
@@ -35,6 +36,7 @@ import {
 import { WhoToListen } from '@/components/coaching/who-to-listen';
 import { ScoreBadge } from '@/components/ui/badge';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/feedback';
+import { CriticalPanel } from '@/components/dashboard/critical-panel';
 import { cn, formatDuration } from '@/lib/utils';
 import type { AgentScore } from '@/types';
 
@@ -74,6 +76,10 @@ export default function DashboardPage() {
     campaign: campaign || undefined,
   });
   const { data: topics } = useTopics({
+    ...dateFilters,
+    campaign: campaign || undefined,
+  });
+  const { data: critical } = useCriticalReport({
     ...dateFilters,
     campaign: campaign || undefined,
   });
@@ -283,6 +289,7 @@ export default function DashboardPage() {
                 <TeamRadar averages={data.team_dimension_averages} />
               </div>
               {topics && <TopicsPanel topics={topics} />}
+              {critical && <CriticalPanel report={critical} />}
             </section>
 
             {/* ---------- Señales ---------- */}

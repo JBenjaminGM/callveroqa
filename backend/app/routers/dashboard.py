@@ -26,13 +26,14 @@ from app.schemas.dashboard import (
     CallsByDay,
     CampaignKpiOut,
     ConversationSummary,
+    CriticalReportOut,
     DashboardSummaryOut,
     RecommendationStat,
     ScoreBucket,
     TimelinePoint,
 )
 from app.services import dashboard_service as ds
-from app.services import topic_service
+from app.services import critical_service, topic_service
 from app.services.name_matching import normalize_name
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
@@ -277,6 +278,29 @@ def dashboard_topics(
             rows, thresholds["qa_red_call_threshold"], limit
         )
     ]
+
+
+@router.get("/critical", response_model=CriticalReportOut)
+def dashboard_critical(
+    period: str = Query(default="30d", pattern="^(7d|30d|90d)$"),
+    campaign: str | None = Query(default=None),
+    date_from: date | None = Query(default=None),
+    date_to: date | None = Query(default=None),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_manager),
+):
+    """
+    Suspendidas por criterio crítico: semana a semana, por asesor y por criterio.
+
+    La alerta por llamada dice «esta se suspendió»; esto dice si es un despiste
+    o un patrón, y si va a más.
+    """
+    start, end = ds.resolve_window(period, date_from, date_to)
+    rows = ds.done_analyses(db, start, end=end, campaign=campaign)
+    nombres = {a.id: a.name for a in db.scalars(select(Agent))}
+    return CriticalReportOut(
+        **critical_service.critical_report(rows, start, end, nombres)
+    )
 
 
 @router.get("/agents/{agent_id}/percentile", response_model=AgentPercentileOut)

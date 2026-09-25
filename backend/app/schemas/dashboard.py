@@ -1,5 +1,7 @@
 """Schemas del dashboard y reportes agregados."""
 
+from datetime import date
+
 from pydantic import BaseModel
 
 
@@ -168,3 +170,43 @@ class TopicStat(BaseModel):
     red_calls: int
     red_pct: float
     critical_calls: int = 0
+
+
+# ------------------------- Suspendidas por criterio crítico -------------------------
+
+
+class CriticalWeekOut(BaseModel):
+    week_start: date
+    total_calls: int
+    critical_calls: int
+    critical_pct: float
+
+
+class CriticalAgentOut(BaseModel):
+    agent_id: int
+    agent_name: str
+    total_calls: int
+    critical_calls: int
+    critical_pct: float
+    # Tasa en cada mitad del periodo; nula con pocas llamadas en una de ellas.
+    first_half_pct: float | None = None
+    second_half_pct: float | None = None
+    top_criterion: str | None = None
+
+
+class CriticalCriterionOut(BaseModel):
+    criterion: str
+    count: int
+
+
+class CriticalReportOut(BaseModel):
+    """Suspendidas del periodo: total, serie semanal, por asesor y por criterio."""
+
+    total_calls: int
+    critical_calls: int
+    critical_pct: float
+    first_half_pct: float | None = None
+    second_half_pct: float | None = None
+    weekly: list[CriticalWeekOut]
+    by_agent: list[CriticalAgentOut]
+    top_criteria: list[CriticalCriterionOut]

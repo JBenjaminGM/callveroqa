@@ -32,6 +32,9 @@ reportlab==4.2.5
 # --- Lectura de PDF (notas de producto de campañas) ---
 pypdf==5.1.0
 
+# --- Monitorización de errores (opcional: solo con SENTRY_DSN) ---
+sentry-sdk==2.19.2
+
 # --- Almacenamiento S3 (opcional) ---
 boto3==1.35.90
 

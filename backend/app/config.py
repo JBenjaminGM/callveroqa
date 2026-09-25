@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     aws_secret_access_key: str = ""
     aws_region: str = "us-east-1"
 
+    # --- Monitorización de errores (vacío = apagada) ---
+    sentry_dsn: str = ""
+    sentry_environment: str = "production"
+
     # --- Transcripción ---
     whisper_provider: str = "groq"           # groq | local | azure
     groq_api_key: str = ""

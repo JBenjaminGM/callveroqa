@@ -3,46 +3,119 @@
 > **Lee esto primero si acabas de entrar al proyecto.** Es el traspaso entre sesiones:
 > dónde estamos, qué sigue y qué te va a hacer perder tiempo si no lo sabes.
 >
-> Última actualización: 11 sep 2026, tras la pasada de diseño.
+> Última actualización: 25 sep 2026, tras el renombrado total a CallVeroQA y la tanda
+> de producción (cuentas, retención de datos, motivos de llamada).
 
 ---
 
 ## En una frase
 
-CallVeroQA es una plataforma de control de calidad de llamadas con IA. **El destino es
-un portafolio**, no vender el producto — eso decide todas las prioridades. Hemos
-ejecutado un plan de cinco fases nacido de una auditoría. **Están las cinco.**
+CallVeroQA es una plataforma de control de calidad de llamadas con IA para call centers
+de banca. **El objetivo cambió: ya no es solo portafolio, es dejarla lista para vender.**
+Eso reordena las prioridades, y están escritas en
+**[`PLAN_PRODUCCION.md`](PLAN_PRODUCCION.md)**, que es el documento que manda ahora: qué
+bloquea una venta, qué está hecho y qué depende del dueño (dinero y cuentas externas).
 
-Antes de tocar nada, lee **[`ARQUITECTURA.md`](ARQUITECTURA.md)** (cómo funciona) y
-**[`ACUERDOS.md`](ACUERDOS.md)** (qué se decidió y qué costaría cambiarlo).
+Antes de tocar nada, lee **[`AGENTS.md`](AGENTS.md)** (cómo está construido y sus
+*gotchas*) y **[`ACUERDOS.md`](ACUERDOS.md)** (qué se decidió y qué costaría cambiarlo).
+La comparativa con la competencia y el orden de las mejoras de producto están en
+**[`COMPETENCIA.md`](COMPETENCIA.md)**.
 
 ## Dónde trabajar
 
 ```
-C:\Users\master\dev\callveroqa\.claude\worktrees\laughing-kapitsa-5141df
+C:\Users\master\dev\callveroqa
 ```
 
-Rama `claude/callveroqa-callibrate-redesign-036677`. **Es un worktree**: ejecuta todo desde
-ahí, no desde la raíz del repositorio.
+Rama `main`, sin worktrees. **No trabajes desde OneDrive**: Docker falla ahí con los
+archivos "solo en la nube", y esa copia duplicada se borró a propósito.
+
+Arranque en local **sin Docker** (esta máquina todavía no tiene WSL2 activo):
+
+```
+powershell -ExecutionPolicy Bypass -File ops\dev-local.ps1
+```
+
+Levanta un PostgreSQL portátil (binarios en `dev\.pgtools`, datos en `dev\.pgdata`,
+usuario y base `callveroqa`), la API en modo inline y el frontend desde su build. Con
+`-Stop` lo para todo. Si tocas la interfaz, `npm run build` antes de relanzar: el script
+sirve el build de producción, no el servidor de desarrollo.
+
+El entorno de Python vive en `backend\.venv` (Python 3.11, la misma versión que la imagen
+de Docker). **Si renombras o mueves la carpeta del proyecto hay que recrearlo**: sus
+lanzadores llevan la ruta incrustada y fallan en silencio.
 
 ## Estado exacto
 
 | | |
 |---|---|
-| Rama | `claude/callveroqa-callibrate-redesign-036677` |
-| Último en `origin/main` | `d50afb8` — suelo de calidad (IMPECCABLE) |
-| Sin subir | nada: **las cinco fases y las dos pasadas de diseño están desplegadas** |
-| Tests backend | **180**, todos en verde |
-| Migraciones | 0001–0013, aplicadas en producción |
+| Repositorio | `github.com/JBenjaminGM/callveroqa` (espejo limpio: `callveroqa-public`) |
+| Rama | `main`, al día con `origin` |
+| Tests backend | **187**, todos en verde |
+| Migraciones | 0001–0014 |
+| Producción | Render + Vercel, desplegado y verificado el 24 sep 2026 |
+| Sin subir | rama `infra/renombrar-servicios` (ver abajo) |
 
-**Pregunta antes de hacer `git push`.** Subir a `main` despliega solo: Vercel reconstruye
-el frontend y Render aplica las migraciones y vuelve a sembrar. Verificado el 11 sep:
-las 67 llamadas siguen ahí, las 22 revisiones y los 6 acuses se sembraron sobre los datos
-existentes, y las nueve rutas nuevas responden.
+**Se hace `push` a `main` sin preguntar** (el usuario lo pidió expresamente), sabiendo que
+despliega solo: Vercel reconstruye el frontend y Render aplica migraciones y vuelve a
+sembrar.
+
+---
+
+## Lo pendiente que NO es código (esto sí bloquea)
+
+1. **Scope `workflow` de GitHub.** El token no puede modificar `.github/workflows`, así
+   que los dos workflows conservan el nombre anterior en comentarios y en la URL del
+   ping. Se concede con `gh auth refresh -h github.com -s workflow` aprobando el código
+   en <https://github.com/login/device>.
+2. **Renombrar los servicios en Render y el proyecto en Vercel.** Está preparado en la
+   rama **`infra/renombrar-servicios`** y **no se subió a propósito**: cambiar los
+   nombres en `render.yaml` no renombra nada — Render trata los servicios por nombre,
+   crearía unos nuevos y dejaría huérfanas la base de datos y la `GROQ_API_KEY`, que solo
+   vive en el panel. Orden correcto: renombrar en los paneles de Render y Vercel →
+   actualizar allí `CORS_ORIGINS` y `NEXT_PUBLIC_API_URL` → conceder el scope → subir esa
+   rama. Hasta entonces las URLs vivas siguen siendo `callaibrate-api.onrender.com` y
+   `callaibrate.vercel.app`, aunque la documentación ya nombra las nuevas.
+3. **Decisiones de gasto** (`PLAN_PRODUCCION.md` §4): plan de pago de Render —la base
+   gratuita caduca a los 30 días y ya se perdieron los datos una vez—, cuenta de S3 para
+   que los audios sobrevivan a un despliegue, `GROQ_API_KEY` válida en Render, dominio
+   propio y el secreto `DATABASE_URL` en GitHub para que corran las copias de seguridad.
 
 ---
 
 ## Lo que ya está hecho
+
+### Septiembre 2026 · Renombrado total y tanda de producción
+
+**Marca.** El rebrand a CallVeroQA se completó hasta el final: repositorios, carpeta
+local, usuario y base de datos, y las claves de `localStorage` (`callveroqa-auth`,
+`callveroqa-theme`). Lo único que conserva los nombres viejos son los mapas de migración
+de cuentas del seed (`@callaibrate.com` y `@callqa.com` → `@callveroqa.com`): sin ellos
+se duplicarían los usuarios ya creados. Ver `ACUERDOS.md` A-01.
+
+**Cuentas** — era el bloqueante número uno, porque no se podía crear una cuenta ni
+cambiar una contraseña sin entrar a la base de datos. Pantallas `/usuarios` y
+`/mi-cuenta`; `GET`/`POST /users`, `PATCH /users/{id}`, `POST /users/{id}/reset-password`
+y `POST /auth/change-password`. Migración 0012 (`users.active`): dar de baja cierra el
+acceso en la siguiente petición y conserva el historial. Nunca se puede dejar la
+plataforma sin un administrador activo.
+
+**Datos.** Retención de grabaciones configurable (migración 0013): pasados N días se
+borra el audio y **se conservan transcripción y nota**; 0 = no caduca. Y supresión total
+de los datos de una persona (`DELETE /agents/{id}/data`, solo administradores).
+
+**Operación.** `/health` comprueba también la base de datos (503 si no responde);
+`X-Request-ID` en cada respuesta, en los logs de esa petición y en los errores 500; y el
+proveedor S3 falla al arrancar si está mal configurado en vez de perder el primer audio.
+
+**Producto** (de `COMPETENCIA.md`): evidencia por nota con saltos al audio, criterios
+críticos con auto-fail, búsqueda dentro de las transcripciones y **motivos de llamada**
+(migración 0014, `GET /dashboard/topics` y la tarjeta «Por qué llaman»).
+
+**Dos fallos que solo aparecieron probando contra el sistema real:** el login limitaba
+cinco intentos **por IP** —y un call center entero sale por una sola IP pública, así que
+el sexto empleado del día no entraba—, y la purga de retención borraba audios que otras
+llamadas vigentes compartían.
 
 ### Fase 0 · Que la demo exista (`26a6c55`)
 - `backend/scripts/demo_conversations.py`: seis conversaciones en español, dos por
@@ -148,82 +221,105 @@ El detalle está en el `CHANGELOG.md`. Lo que conviene saber para no deshacerlo:
 
 ## Lo que sigue
 
-**El plan de cinco fases está terminado.** No hay una fase 5 pendiente: lo que queda son
-las decisiones abiertas de [`ACUERDOS.md`](ACUERDOS.md), que son del usuario y no
-técnicas — sobre todo **D-1** (pasar Render a plan de pago, que resuelve de un golpe la
-caducidad de la base, el arranque lento y, con S3, la pérdida de audios).
+El orden está en **[`PLAN_PRODUCCION.md`](PLAN_PRODUCCION.md)**. Lo que queda por
+programar, de más a menos valor:
 
-Si retomas el proyecto para añadir algo, dos avisos:
+1. **Coaching medible** (`COMPETENCIA.md` 3.3): sesión de coaching ligada a un criterio,
+   con comparación antes/después sobre la misma dimensión. Lo piden todas las guías de
+   compra y cierra el ciclo con datos.
+2. **Criterios «no aplica»** en la rúbrica (3.4): hoy un criterio que no aplica a esa
+   llamada baja la nota igual.
+3. **Alertas de críticos por asesor y tendencia** (ya existe la alerta por llamada y el
+   porcentaje por campaña; falta la serie temporal).
+4. **Multi-cliente** (3.5): solo si se vende a más de una empresa. Es una reforma grande
+   —hay que llevar el identificador de cliente a todas las tablas y consultas— y **no
+   hace falta** para vender una instalación a un banco.
 
-- **La base de datos de producción vuelve a caducar a los 30 días.** Si al abrir la demo
-  no hay datos, es eso. Ver el punto 9 de los tropiezos.
+Dos avisos si retomas esto dentro de un tiempo:
+
+- **La base de datos de producción vuelve a caducar a los 30 días.** Si la demo abre
+  vacía, es eso (punto 9 de los tropiezos).
 - **Antes de tocar la marca o la documentación**, lee [`HISTORIA.md`](HISTORIA.md): es el
   único sitio donde se nombran el producto y las identidades visuales anteriores, y
   conviene que siga siendo así.
-
-El plan completo, con el porqué de cada cosa, está en el artefacto
-<https://claude.ai/code/artifact/0736a828-5247-4c0a-911d-71bf3c405a4f>
-y la auditoría que lo originó en
-<https://claude.ai/code/artifact/fb1c7a81-572f-4eef-8aa2-624149103f2a>.
 
 ---
 
 ## Cómo verificar que todo sigue bien
 
+Tests del backend (187):
+
 ```bash
-cd backend && "C:/Users/master/dev/callveroqa/backend/.venv/Scripts/python.exe" -m pytest -q
+cd backend && ./.venv/Scripts/python.exe -m pytest -q
 ```
+
+Frontend:
 
 ```bash
 cd frontend && npx tsc --noEmit && npm run lint && npm run build
 ```
 
+Levantar la aplicación en local (sin Docker, que es como está montada esta máquina):
+
 ```bash
-docker compose up -d --build
+powershell -ExecutionPolicy Bypass -File ops/dev-local.ps1
 ```
 
-App en <http://localhost:3000>, API en <http://localhost:8000/docs>.
+App en <http://localhost:3000>, API en <http://localhost:8000/docs>. Con Docker (si algún
+día hay WSL2) sigue valiendo `docker compose up -d --build`.
 
 **Cuenta de demostración:** `demo@callveroqa.com` / `CallVeroQA-Demo-2026` (solo lectura).
 Las contraseñas de admin y jefe se generan al azar en cada base nueva y se imprimen una
-sola vez: `docker compose logs api | grep -A 8 CREDENCIALES`.
+sola vez; en esta máquina quedaron en `dev\.seed-output.txt`. Desde la aplicación,
+cualquiera puede cambiarse la suya en **Mi cuenta**, y un administrador puede resetear la
+de otro desde **Usuarios**.
+
+Comprobación rápida de que la demo sigue contando la historia correcta: el panel abre con
+«a quién escuchar hoy», la tarjeta «Por qué llaman» muestra tres motivos, y
+«Oferta de tarjeta Premium» es el peor (score ~50, con 10 llamadas suspendidas).
 
 ---
 
 ## Lo que te hará perder tiempo si no lo sabes
 
-1. **`.venv` y `node_modules` viven en el repositorio principal**, no en el worktree.
-   Para los tests usa el intérprete de `C:\Users\master\dev\callveroqa\backend\.venv`.
-   Para el frontend hace falta `npm ci` dentro del worktree.
-2. **El stack Docker del repositorio principal ocupa el puerto 8000.** Si `docker compose
-   up` no arranca, párala: `docker stop callveroqa-api-1 callveroqa-worker-1
-   callveroqa-postgres-1 callveroqa-redis-1`.
-3. **`npx next start` sobrevive a que se mate la tarea.** Si el navegador muestra una
-   versión antigua, es que quedó un servidor huérfano en el 3000: mátalo por puerto antes
-   de arrancar el nuevo build.
-4. **Chrome cachea agresivamente el frontend local.** Si acabas de reconstruir y ves la
-   interfaz vieja, comprueba con otro navegador antes de dar por roto el código.
-5. **Las columnas de fecha son *naive*.** Nunca compares con un `datetime` con zona
+1. **Si mueves o renombras la carpeta del proyecto, `backend\.venv` deja de funcionar**:
+   sus lanzadores (`alembic.exe`, `pytest.exe`) llevan la ruta incrustada y fallan **sin
+   mensaje**. Hay que recrear el entorno.
+2. **No trabajes desde OneDrive.** Docker falla con los archivos "solo en la nube" y
+   además el borrado de una carpeta ahí puede quedar bloqueado por el sincronizador.
+3. **`npm start` sobrevive a que se mate la tarea.** Si el navegador muestra una versión
+   antigua o la página sale en blanco con 404 de todos los *chunks*, es un servidor viejo
+   sirviendo un build que ya no existe. `ops/dev-local.ps1` ya lo mata antes de arrancar.
+4. **Las columnas de fecha son *naive*.** Nunca compares con un `datetime` con zona
    horaria: usa `datetime.now(timezone.utc).replace(tzinfo=None)`.
-6. **`useAuthStore.persist` no existe durante el prerender del servidor.** Solo se puede
-   leer dentro de un `useEffect`; hacerlo en el cuerpo del componente rompe `next build`.
-7. **Al redesplegar se borran los audios** (`STORAGE_PROVIDER=local`). Reintentar una
-   llamada ya subida falla con `No such file or directory`: hay que volver a subirla.
+5. **Las columnas JSON guardan `None` como `null` JSON, no como NULL de SQL.** Para
+   filtrar «tiene fallos críticos» se usa `uncapped_score IS NOT NULL`, que sí es un NULL
+   de verdad.
+6. **`useAuthStore.persist` no existe durante el prerender.** Solo se puede leer dentro de
+   un `useEffect`; hacerlo en el cuerpo del componente rompe `next build`.
+7. **El seed de demostración reutiliza seis audios entre 67 llamadas.** Cualquier cosa que
+   borre archivos (retención, limpiezas) tiene que comprobar si otra llamada vigente
+   comparte el archivo, o deja mudas llamadas que no han caducado.
 8. **El catálogo de modelos de Groq cambia sin avisar.** Si el análisis da `404
    model_not_found`, elige otro de <https://console.groq.com/docs/models> y cámbialo en
    `render.yaml` **y** en la variable `AI_MODEL_GROQ` del panel de Render.
 9. **La PostgreSQL del plan gratuito de Render caduca a los 30 días** y se elimina con
    todo dentro. Ya pasó una vez. El workflow de copias existe pero necesita el secreto
    `DATABASE_URL` en GitHub.
+10. **Al redesplegar se borran los audios** con `STORAGE_PROVIDER=local`. Es el motivo por
+    el que S3 es el modo de producción, no un extra.
 
 ## Cómo trabajar en este proyecto
 
-- **De forma autónoma**: ejecuta git, docker, dependencias, migraciones, pruebas y builds
-  sin pedir confirmación paso a paso.
+- **De forma autónoma**: git, dependencias, migraciones, pruebas, builds y `push` a `main`
+  sin pedir confirmación paso a paso. El usuario lo pidió así expresamente.
 - **Nada se da por bueno sin probarlo de verdad** contra el sistema real. Así aparecieron
-  los tres fallos que nadie habría visto: la base de datos borrada, la sesión que se
-  cerraba al recargar y el modelo de Groq retirado.
-- **No introduzcas claves ni contraseñas en formularios.** Configurar, diagnosticar,
-  desplegar y verificar, sí. Escribir una API key en un campo, no: eso lo hace el usuario.
-- **Pregunta antes de**: hacer `push`, borrar datos o renombrar servicios.
-- **Escribe en español**, igual que el resto del proyecto.
+  los fallos que nadie habría visto leyendo el código: la base de datos borrada, la sesión
+  que se cerraba al recargar, el modelo de Groq retirado, el límite de login por IP y la
+  purga que borraba audios compartidos.
+- **No introduzcas claves ni contraseñas reales en formularios.** Configurar, diagnosticar,
+  desplegar y verificar, sí; escribir una API key o una contraseña del usuario en un
+  campo, no: eso lo hace él.
+- **Pregunta antes de** borrar datos o renombrar servicios en la nube.
+- **Escribe en español**, igual que el resto del proyecto, y con comentarios que expliquen
+  *por qué*, no *qué*.

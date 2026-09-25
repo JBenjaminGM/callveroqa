@@ -6,6 +6,26 @@ Cambios relevantes. Formato: descripción (commit). Lo más nuevo arriba.
 > [`HISTORIA.md`](HISTORIA.md), movido tal cual: nombra el producto y la identidad
 > visual de entonces porque así era. Es historia, no estado.
 
+## Producto: por qué llaman los clientes (motivos de llamada)
+
+El resto del panel mide al equipo; esto mide **a qué se enfrenta**. Es el punto 3.2 de
+[`COMPETENCIA.md`](COMPETENCIA.md) y el salto de «control de calidad» a «inteligencia de
+cliente»: un jefe puede entrenar a un asesor flojo, pero si el 30 % de las llamadas
+entran por un cobro mal explicado, eso no se arregla con coaching.
+
+- `Motivo detectado por la IA` en cada llamada (**migración 0014**, `calls.topic`).
+- `GET /dashboard/topics` [manager] y tarjeta **«Por qué llaman»** en el panel: volumen,
+  nota media, % en banda roja y suspendidas por motivo, ordenado por volumen — lo primero
+  que hay que ver es de qué tamaño es el problema, no cuál puntúa peor.
+- `El vocabulario no se fragmenta`: a la IA se le pasa el catálogo de motivos ya usados
+  para que reutilice uno si encaja, y al guardar se normaliza (espacios, mayúsculas,
+  acentos) y se busca un equivalente. También se limpia la basura típica del LLM
+  («Motivo: …», comillas, una frase entera en vez de una etiqueta).
+- `Demo`: los seis guiones traen su motivo y las bases ya sembradas se rellenan sin
+  duplicar. En la demo, «Oferta de tarjeta Premium» es el peor motivo (≈50) y concentra
+  10 de las llamadas suspendidas.
+- `Tests`: 180 → **187**.
+
 ## Producción: cuentas, retención de datos y operación
 
 Sale de [`PLAN_PRODUCCION.md`](PLAN_PRODUCCION.md), que ordena lo que falta para

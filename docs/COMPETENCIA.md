@@ -56,7 +56,7 @@ Resumen de las guías de compra consultadas (fuentes al final):
 | Nota de producto por campaña | ✅ **ventaja** | Específico de venta bancaria: la IA evalúa la oferta contra la ficha. |
 | **Búsqueda en transcripciones** | ✅ **nuevo** | Con fragmento resaltado. |
 | Redacción de datos sensibles | 🟡 | Enmascarado *best-effort* antes del LLM; el audio crudo sigue saliendo al proveedor. |
-| Descubrimiento de temas / causa raíz | ❌ | Siguiente candidato (ver plan). |
+| **Motivos de llamada / temas** | ✅ **nuevo** | `GET /dashboard/topics` y la tarjeta «Por qué llaman»: vocabulario que crece sin fragmentarse. Falta la causa raíz agregada por intención (lo de Level AI). |
 | Coaching con seguimiento antes/después | 🟡 | Hay recomendaciones y acuse; falta medir si el coaching movió la nota. |
 | Evaluación en tiempo real | ❌ | Fuera de alcance: exige integración con la telefonía. |
 | Omnicanal (chat, email) | ❌ | Solo voz. |
@@ -87,11 +87,22 @@ nota que habría tenido y se explica qué criterio, por qué y en qué segundo. 
 El listado de llamadas busca dentro de las transcripciones («cancelar», «TEA», «reclamo»)
 y enseña el fragmento que coincide, resaltado. También filtra solo las suspendidas.
 
+### 4. Motivos de llamada
+
+La IA etiqueta **por qué llama el cliente** y el panel agrupa por ese motivo: volumen,
+nota media, porcentaje en banda roja y suspendidas. El resto del panel mide al equipo;
+esto mide a qué se enfrenta, que es lo que separa «control de calidad» de «inteligencia
+de cliente».
+
+Lo difícil no era detectarlo sino que no se fragmentara: a la IA se le pasa el catálogo
+de motivos ya usados para que reutilice, y al guardar se normaliza y se busca un
+equivalente. Así el vocabulario crece cuando el negocio cambia, pero no se duplica.
+
 ## Plan: lo siguiente, por impacto
 
 | # | Mejora | Por qué | Coste |
 |---|---|---|---|
-| 1 | **Temas y motivos de llamada** (clustering de resúmenes por campaña) | Es lo que más diferencia a CallMiner o Level AI: pasar de «cómo lo hizo el asesor» a «por qué llaman los clientes». | 🟡 |
+| ~~1~~ | ~~**Temas y motivos de llamada**~~ | **Hecho** (septiembre de 2026). | ✅ |
 | 2 | **Coaching medible**: sesión ligada a un criterio y comparación antes/después | Las guías de compra lo piden explícitamente; cierra el ciclo con datos. | 🟡 |
 | 3 | **Alertas de críticos** en el panel (tasa de suspendidas por campaña y asesor, tendencia) | Riesgo normativo visible de un vistazo. | 🟢 |
 | 4 | **Preguntas «N/A» o condicionales** en la rúbrica | Un criterio que no aplica no debería bajar la nota. | 🟡 |

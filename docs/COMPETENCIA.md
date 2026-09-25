@@ -57,7 +57,7 @@ Resumen de las guías de compra consultadas (fuentes al final):
 | **Búsqueda en transcripciones** | ✅ **nuevo** | Con fragmento resaltado. |
 | Redacción de datos sensibles | 🟡 | Enmascarado *best-effort* antes del LLM; el audio crudo sigue saliendo al proveedor. |
 | **Motivos de llamada / temas** | ✅ **nuevo** | `GET /dashboard/topics` y la tarjeta «Por qué llaman»: vocabulario que crece sin fragmentarse. Falta la causa raíz agregada por intención (lo de Level AI). |
-| Coaching con seguimiento antes/después | 🟡 | Hay recomendaciones y acuse; falta medir si el coaching movió la nota. |
+| **Coaching con seguimiento antes/después** | ✅ **nuevo** | Sesión atada a un criterio; antes/después de 30 días descontando lo que se movió el equipo. |
 | Evaluación en tiempo real | ❌ | Fuera de alcance: exige integración con la telefonía. |
 | Omnicanal (chat, email) | ❌ | Solo voz. |
 | Integraciones CCaaS / CRM | ❌ | Subida manual de audios. |
@@ -98,12 +98,23 @@ Lo difícil no era detectarlo sino que no se fragmentara: a la IA se le pasa el 
 de motivos ya usados para que reutilice, y al guardar se normaliza y se busca un
 equivalente. Así el vocabulario crece cuando el negocio cambia, pero no se duplica.
 
+### 5. Coaching medible
+
+Cada sesión de coaching se hace **sobre un criterio de la rúbrica** y se mide sola: la
+nota de ese criterio en las llamadas del asesor 30 días antes frente a 30 días después.
+Lo que se juzga es el **efecto neto**, la mejora del asesor menos la del resto del
+equipo en esas mismas semanas: si todos suben, no fue la sesión. Con pocas llamadas no
+hay veredicto, y la plataforma lo dice en vez de inventarlo.
+
+Al registrarla se proponen los criterios donde el asesor más se separa del equipo, que
+no son necesariamente los de nota más baja.
+
 ## Plan: lo siguiente, por impacto
 
 | # | Mejora | Por qué | Coste |
 |---|---|---|---|
 | ~~1~~ | ~~**Temas y motivos de llamada**~~ | **Hecho** (septiembre de 2026). | ✅ |
-| 2 | **Coaching medible**: sesión ligada a un criterio y comparación antes/después | Las guías de compra lo piden explícitamente; cierra el ciclo con datos. | 🟡 |
+| ~~2~~ | ~~**Coaching medible**~~ | **Hecho** (septiembre de 2026). | ✅ |
 | 3 | **Alertas de críticos** en el panel (tasa de suspendidas por campaña y asesor, tendencia) | Riesgo normativo visible de un vistazo. | 🟢 |
 | 4 | **Preguntas «N/A» o condicionales** en la rúbrica | Un criterio que no aplica no debería bajar la nota. | 🟡 |
 | 5 | **Transcripción on-premise o Azure** para datos reales | Requisito de compliance antes de usar audios de clientes. | 🔴 |

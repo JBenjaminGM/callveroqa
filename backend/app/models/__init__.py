@@ -14,6 +14,7 @@ from app.models.transcription import Transcription
 from app.models.analysis import Analysis
 from app.models.review import Review
 from app.models.acknowledgement import Acknowledgement
+from app.models.coaching_session import CoachingSession
 from app.models.settings import AppSettings, RubricConfig
 
 __all__ = [
@@ -27,6 +28,7 @@ __all__ = [
     "Analysis",
     "Review",
     "Acknowledgement",
+    "CoachingSession",
     "AppSettings",
     "RubricConfig",
 ]

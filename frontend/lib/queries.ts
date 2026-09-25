@@ -26,6 +26,9 @@ import type {
   CampaignDraft,
   CampaignExtractResult,
   CampaignKpi,
+  CoachingSession,
+  CoachingSessionInput,
+  CoachingSuggestion,
   CreatedUser,
   DashboardAlert,
   DashboardSummary,
@@ -666,6 +669,60 @@ export function useWhoToListen(filters: ListenFilters) {
       );
       return data;
     },
+  });
+}
+
+/* -------------------------- Coaching medible --------------------------- */
+
+/** Sesiones de coaching con su antes y después. El asesor recibe solo las suyas. */
+export function useCoachingSessions(agentId?: number, enabled = true) {
+  return useQuery({
+    queryKey: ['coaching-sessions', agentId ?? 'all'],
+    queryFn: async () => {
+      const { data } = await api.get<CoachingSession[]>('/coaching/sessions', {
+        params: agentId ? { agent_id: agentId } : undefined,
+      });
+      return data;
+    },
+    enabled,
+  });
+}
+
+/** Sobre qué dimensiones conviene hacer coaching a un asesor (solo managers). */
+export function useCoachingSuggestions(agentId: number, enabled = true) {
+  return useQuery({
+    queryKey: ['coaching-suggestions', agentId],
+    queryFn: async () => {
+      const { data } = await api.get<CoachingSuggestion[]>(
+        `/coaching/suggestions/${agentId}`,
+      );
+      return data;
+    },
+    enabled: enabled && Number.isFinite(agentId),
+  });
+}
+
+export function useCreateCoachingSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: CoachingSessionInput) => {
+      const { data } = await api.post<CoachingSession>(
+        '/coaching/sessions',
+        payload,
+      );
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['coaching-sessions'] }),
+  });
+}
+
+export function useDeleteCoachingSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      await api.delete(`/coaching/sessions/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['coaching-sessions'] }),
   });
 }
 

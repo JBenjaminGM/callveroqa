@@ -33,7 +33,7 @@ Esenciales:
   `is_manager` / `require_manager` protegen lo de gestión.
 - **Campañas con nota de producto:** entidad `Campaign` (9 campos); se inyecta en el prompt.
 - **Trabajar en `C:\Users\master\dev\callveroqa`** (NO la copia de OneDrive).
-- **Tests:** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q` (187 tests). Migraciones 0001–0014.
+- **Tests:** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q` (199 tests). Migraciones 0001–0015.
 - **Desplegar:** `git push origin main` → Vercel + Render redepliegan solos. **`GROQ_API_KEY`
   en prod vive en el dashboard de Render (`sync: false`), no en el repo.**
 - **Dos repos:** privado `callveroqa` (completo) + público `callveroqa` (código limpio). Publicar

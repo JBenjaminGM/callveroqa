@@ -33,6 +33,7 @@ import {
 import { ScoreGauge, DeltaPill } from '@/components/dashboard/viz';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { MyPendingEvaluations } from '@/components/coaching/my-pending';
+import { CoachingSessions } from '@/components/coaching/coaching-sessions';
 import { dimensionLabel, scoreLabel } from '@/lib/utils';
 
 /** Panel personal del asesor: su rendimiento, comparativa y puntos de mejora. */
@@ -230,6 +231,13 @@ export default function MyPanelPage() {
                 </p>
               </Card>
             )}
+
+            {/* Sus sesiones de coaching y si le sirvieron. */}
+            <CoachingSessions
+              agentId={user.agent_id}
+              agentName={agent?.name ?? user.name}
+              canManage={false}
+            />
           </div>
         )}
       </main>

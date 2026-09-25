@@ -181,6 +181,7 @@ def test_suprimir_los_datos_de_una_persona_se_lleva_todo(
         "agent_id": sample_agent.id,
         "calls_deleted": 2,
         "audios_deleted": 2,
+        "coaching_sessions_deleted": 0,
     }
     assert len(almacen.borrados) == 2
 

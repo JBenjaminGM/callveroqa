@@ -68,3 +68,4 @@ class DataErasureOut(BaseModel):
     agent_id: int
     calls_deleted: int
     audios_deleted: int
+    coaching_sessions_deleted: int = 0

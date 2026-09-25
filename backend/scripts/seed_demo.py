@@ -17,6 +17,8 @@ Qué genera:
   algo real en vez de vacío.
 - Respuestas de los asesores a sus evaluaciones, alguna con petición de revisión
   abierta, para que «a quién escuchar hoy» tenga algo urgente que proponer.
+- Sesiones de coaching con su antes y después: una que funcionó, otra que no y
+  otra demasiado reciente para juzgarla.
 
 No llama a la IA: funciona sin clave y sin coste, y siempre produce lo mismo
 (la semilla del azar es fija).
@@ -34,7 +36,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from sqlalchemy import select  # noqa: E402
+from sqlalchemy import func, select  # noqa: E402
 
 import demo_conversations as guiones  # noqa: E402
 from app.database import SessionLocal  # noqa: E402
@@ -43,6 +45,7 @@ from app.models.analysis import Analysis  # noqa: E402
 from app.models.call import Call, CallStatus  # noqa: E402
 from app.models.campaign import Campaign  # noqa: E402
 from app.models.acknowledgement import Acknowledgement  # noqa: E402
+from app.models.coaching_session import CoachingSession  # noqa: E402
 from app.models.review import Review  # noqa: E402
 from app.models.transcription import Transcription  # noqa: E402
 from app.models.user import ROLE_JEFE, User  # noqa: E402
@@ -335,6 +338,96 @@ def sembrar_acuses(db, rng) -> int:
     return creados
 
 
+# Sesiones de coaching de la demo: (ejecutivo, dimensión, hace cuántos días, notas).
+#
+# Cada una cuenta una historia distinta, y las tres hacen falta:
+#
+# - María, hace 45 días, en cumplimiento: su tendencia sube, así que la sesión
+#   sale como «funcionó», también descontando lo que se movió el equipo.
+#
+# Los días se cuentan desde la última llamada sembrada, no desde hoy: si el
+# coaching se siembra semanas después que las llamadas (una base que ya existía),
+# la historia tiene que salir igual.
+# - Lucía, hace 30 días, en lo mismo: su nota se mueve más o menos lo que se
+#   mueve la del equipo, así que la sesión no se distingue de no haberla hecho.
+#   Es el caso que vende la función: sin medir, se daría por buena.
+# - Carlos, hace 5 días: todavía no hay llamadas suficientes para juzgarla, y
+#   la plataforma lo dice en vez de inventar un resultado.
+SESIONES_DE_COACHING = [
+    (
+        "María González",
+        "compliance",
+        45,
+        "Repasamos el aviso de grabación y cómo decir la TEA sin que suene a "
+        "letra pequeña. Acordamos leerla siempre antes del cierre.",
+    ),
+    (
+        "Lucía Fernández",
+        "compliance",
+        30,
+        "Exclusiones y carencia de 60 días en seguros: dónde encajarlas en la "
+        "conversación. Se comprometió a usar la ficha de la campaña.",
+    ),
+    (
+        "Carlos Ruiz",
+        "assertiveness",
+        5,
+        "Escuchamos juntos una llamada donde habló casi un minuto seguido. "
+        "Probar a cortar cada treinta segundos con una pregunta.",
+    ),
+]
+
+
+def sembrar_coaching(db) -> int:
+    """
+    Siembra sesiones de coaching con su antes y después.
+
+    Cada sesión apunta a la llamada más floja del asesor en esa dimensión en
+    las semanas previas: es la que un jefe habría escuchado para decidir sobre
+    qué hablar.
+    """
+    if db.scalar(select(CoachingSession).limit(1)) is not None:
+        return 0
+
+    ejecutivos = {a.name: a for a in db.scalars(select(Agent))}
+    coach = db.scalar(select(User).where(User.role == ROLE_JEFE, User.is_readonly.is_(False)))
+
+    ultima = db.scalar(select(func.max(Call.call_date)))
+    if ultima is None:
+        return 0
+
+    creadas = 0
+    for nombre, dimension, dias, notas in SESIONES_DE_COACHING:
+        agente = ejecutivos.get(nombre)
+        if agente is None:
+            continue
+        dia = ultima - timedelta(days=dias)
+        previas = db.execute(
+            select(Call, Analysis)
+            .join(Analysis, Analysis.call_id == Call.id)
+            .where(Call.agent_id == agente.id)
+            .where(Call.call_date < dia, Call.call_date >= dia - timedelta(days=21))
+        ).all()
+        motivo = min(
+            previas,
+            key=lambda ca: (ca[1].dimension_scores or {}).get(dimension, 100),
+            default=None,
+        )
+        db.add(
+            CoachingSession(
+                agent_id=agente.id,
+                dimension_key=dimension,
+                held_on=dia,
+                notes=notas,
+                call_id=motivo[0].id if motivo else None,
+                coach_id=coach.id if coach else None,
+            )
+        )
+        creadas += 1
+    db.commit()
+    return creadas
+
+
 def marcar_criterios_criticos(db) -> None:
     """
     Deja marcados como críticos los criterios que usa la demo.
@@ -440,6 +533,9 @@ def sembrar() -> None:
             motivos = completar_motivos(db)
             if motivos:
                 print(f"[demo] Motivo de llamada añadido a {motivos} llamadas.")
+            sesiones = sembrar_coaching(db)
+            if sesiones:
+                print(f"[demo] {sesiones} sesiones de coaching añadidas.")
             return
 
         admin = db.scalar(select(User).order_by(User.id))
@@ -544,6 +640,14 @@ def sembrar() -> None:
             print(
                 f"[demo] {acuses} respuestas de asesores creadas, dos con "
                 "petición de revisión abierta."
+            )
+
+        sesiones = sembrar_coaching(db)
+        if sesiones:
+            print(
+                f"[demo] {sesiones} sesiones de coaching creadas: la de María "
+                "funciona, la de Lucía no se separa del equipo y la de Carlos "
+                "aún no tiene datos."
             )
     finally:
         db.close()

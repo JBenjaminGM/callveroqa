@@ -29,6 +29,7 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { ErrorState, Skeleton, Spinner } from '@/components/ui/feedback';
 import { ScoreRadar } from '@/components/charts/score-radar';
+import { CoachingSessions } from '@/components/coaching/coaching-sessions';
 import { dimensionLabel } from '@/lib/utils';
 import type { AgentDetail } from '@/types';
 
@@ -317,6 +318,14 @@ export default function AgentDetailPage() {
                 </p>
               </Card>
             )}
+
+            {/* Coaching con su antes y después. No depende del periodo elegido
+                arriba: cada sesión se mide en su propia ventana. */}
+            <CoachingSessions
+              agentId={id}
+              agentName={agent.name}
+              canManage={isManager}
+            />
           </div>
         )}
       </main>

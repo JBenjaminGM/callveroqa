@@ -19,9 +19,9 @@ recomendaciones concretas. Antes eso lo hacía una persona escuchando llamada po
 |---|---|
 | Programas | 2 (frontend + backend) |
 | Líneas de código | 20.213 |
-| Funciones de la API | 54 |
-| Tablas de datos | 10 |
-| Pruebas automáticas | 187 |
+| Funciones de la API | 70 |
+| Tablas de datos | 11 |
+| Pruebas automáticas | 199 |
 | Coste mensual | $0 |
 
 ---
@@ -180,7 +180,7 @@ backend/          Python — la lógica y los datos
   app/services/   Las reglas de negocio (analizar, transcribir, puntuar, calibrar)
   app/models/     Las 10 tablas de la base de datos
   alembic/        Las 10 migraciones, en orden
-  tests/          Las 187 pruebas automáticas
+  tests/          Las 199 pruebas automáticas
 
 frontend/         TypeScript — lo que se ve
   app/            Una carpeta por pantalla (dashboard, llamadas, campañas…)

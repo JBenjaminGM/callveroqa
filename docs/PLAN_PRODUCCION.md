@@ -38,7 +38,7 @@ Detalle y comparativa en [`COMPETENCIA.md`](COMPETENCIA.md).
 |---|---|---|---|
 | 3.1 | **Alerta propia de criterio crítico** + tasa de suspendidas por campaña | Riesgo normativo visible de un vistazo; hoy se confunde con «banda roja». | ✅ |
 | 3.2 | **Temas y motivos de llamada** (por qué llama el cliente, no solo cómo lo hizo el asesor) | Es el salto de «QA» a «inteligencia de cliente». Lo que venden CallMiner y Level AI. | ✅ |
-| 3.3 | **Coaching medible**: sesión ligada a un criterio, con antes/después | Cierra el ciclo con datos; lo piden todas las guías de compra. | ⬜ |
+| 3.3 | **Coaching medible**: sesión ligada a un criterio, con antes/después | Cierra el ciclo con datos; lo piden todas las guías de compra. | ✅ |
 | 3.4 | Criterios «no aplica» en la rúbrica | Un criterio que no aplica no debería bajar la nota. | ⬜ |
 | 3.5 | Multi-cliente (una instalación, varias empresas) | Necesario para vender como SaaS a varios clientes; **no** para vender una instalación a un banco. | ⬜ |
 
@@ -54,7 +54,7 @@ Detalle y comparativa en [`COMPETENCIA.md`](COMPETENCIA.md).
 
 ## 5. Orden recomendado
 
-1. **Hecho ya:** todo lo marcado ✅ en las secciones 1, 2 y 3 (incluido 3.2, los motivos de llamada).
+1. **Hecho ya:** todo lo marcado ✅ en las secciones 1, 2 y 3 (incluidos 3.2, los motivos de llamada, y 3.3, el coaching medible).
 2. **Esta semana:** 4.1 y 4.2 (gasto pequeño) + 2.1 y 2.5. Con eso la plataforma deja de
    tener fecha de caducidad y se entera uno cuando algo falla.
 3. **Antes de enseñarla a un cliente real:** 4.4 y 4.5.

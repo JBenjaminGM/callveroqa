@@ -51,8 +51,8 @@ lanzadores llevan la ruta incrustada y fallan en silencio.
 |---|---|
 | Repositorio | `github.com/JBenjaminGM/callveroqa` (espejo limpio: `callveroqa-public`) |
 | Rama | `main`, al día con `origin` |
-| Tests backend | **187**, todos en verde |
-| Migraciones | 0001–0014 |
+| Tests backend | **199**, todos en verde |
+| Migraciones | 0001–0015 |
 | Producción | Render + Vercel, desplegado y verificado el 24 sep 2026 |
 | Sin subir | rama `infra/renombrar-servicios` (ver abajo) |
 
@@ -111,6 +111,13 @@ proveedor S3 falla al arrancar si está mal configurado en vez de perder el prim
 **Producto** (de `COMPETENCIA.md`): evidencia por nota con saltos al audio, criterios
 críticos con auto-fail, búsqueda dentro de las transcripciones y **motivos de llamada**
 (migración 0014, `GET /dashboard/topics` y la tarjeta «Por qué llaman»).
+
+**Coaching medible** (migración 0015, `COMPETENCIA.md` 3.3): sesión con un asesor sobre
+un criterio de la rúbrica, medida con el antes y el después de 30 días **descontando lo
+que se movió el equipo**. Tarjeta «Coaching» en la ficha del ejecutivo y en «Mi
+rendimiento». Probándolo contra los datos reales salió que, a los cinco días de una
+sesión, el asesor ya tenía tres llamadas y el equipo no, y se le daba por buena con el
+cambio bruto: ahora, si hay equipo pero faltan sus datos, el veredicto espera.
 
 **Dos fallos que solo aparecieron probando contra el sistema real:** el login limitaba
 cinco intentos **por IP** —y un call center entero sale por una sola IP pública, así que
@@ -224,14 +231,11 @@ El detalle está en el `CHANGELOG.md`. Lo que conviene saber para no deshacerlo:
 El orden está en **[`PLAN_PRODUCCION.md`](PLAN_PRODUCCION.md)**. Lo que queda por
 programar, de más a menos valor:
 
-1. **Coaching medible** (`COMPETENCIA.md` 3.3): sesión de coaching ligada a un criterio,
-   con comparación antes/después sobre la misma dimensión. Lo piden todas las guías de
-   compra y cierra el ciclo con datos.
-2. **Criterios «no aplica»** en la rúbrica (3.4): hoy un criterio que no aplica a esa
+1. **Criterios «no aplica»** en la rúbrica (3.4): hoy un criterio que no aplica a esa
    llamada baja la nota igual.
-3. **Alertas de críticos por asesor y tendencia** (ya existe la alerta por llamada y el
+2. **Alertas de críticos por asesor y tendencia** (ya existe la alerta por llamada y el
    porcentaje por campaña; falta la serie temporal).
-4. **Multi-cliente** (3.5): solo si se vende a más de una empresa. Es una reforma grande
+3. **Multi-cliente** (3.5): solo si se vende a más de una empresa. Es una reforma grande
    —hay que llevar el identificador de cliente a todas las tablas y consultas— y **no
    hace falta** para vender una instalación a un banco.
 
@@ -247,7 +251,7 @@ Dos avisos si retomas esto dentro de un tiempo:
 
 ## Cómo verificar que todo sigue bien
 
-Tests del backend (187):
+Tests del backend (199):
 
 ```bash
 cd backend && ./.venv/Scripts/python.exe -m pytest -q

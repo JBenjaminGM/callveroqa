@@ -27,6 +27,7 @@ from sqlalchemy.orm import Session
 
 from app.models.agent import Agent
 from app.models.call import Call
+from app.models.coaching_session import CoachingSession
 from app.models.settings import AppSettings
 from app.services.storage_service import get_storage_provider
 
@@ -176,12 +177,26 @@ def delete_agent_data(db: Session, agent: Agent) -> dict:
                 logger.warning("No se pudo borrar el audio id=%s: %s", call.id, exc)
         # El resto (transcripción, análisis, revisión, acuse) cae por cascada.
         db.delete(call)
+    # Las sesiones de coaching no cuelgan de una llamada sino de la ficha, que se
+    # conserva: sin borrarlas a mano, las notas sobre esa persona sobrevivirían
+    # a la supresión.
+    sesiones = list(
+        db.scalars(select(CoachingSession).where(CoachingSession.agent_id == agent.id))
+    )
+    for sesion in sesiones:
+        db.delete(sesion)
     agent.active = False
     db.commit()
     logger.info(
-        "Supresión de datos del ejecutivo id=%s: %s llamadas, %s audios.",
+        "Supresión de datos del ejecutivo id=%s: %s llamadas, %s audios, "
+        "%s sesiones de coaching.",
         agent.id,
         len(llamadas),
         audios,
+        len(sesiones),
     )
-    return {"calls_deleted": len(llamadas), "audios_deleted": audios}
+    return {
+        "calls_deleted": len(llamadas),
+        "audios_deleted": audios,
+        "coaching_sessions_deleted": len(sesiones),
+    }

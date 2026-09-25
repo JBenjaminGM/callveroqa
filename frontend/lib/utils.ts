@@ -38,7 +38,12 @@ export function formatDuration(seconds?: number | null): string {
 /** Formatea una fecha ISO como "dd/mm/aaaa". */
 export function formatDate(iso?: string | null): string {
   if (!iso) return '—';
-  const d = new Date(iso);
+  // Una fecha sin hora («2026-08-08») la interpreta `Date` como medianoche UTC,
+  // y en América eso cae el día anterior. Se construye en hora local.
+  const soloFecha = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  const d = soloFecha
+    ? new Date(+soloFecha[1], +soloFecha[2] - 1, +soloFecha[3])
+    : new Date(iso);
   if (Number.isNaN(d.getTime())) return '—';
   return d.toLocaleDateString('es-PE', {
     day: '2-digit',

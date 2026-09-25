@@ -95,6 +95,7 @@ backend/
                        is_manager (helper de rol)
     models/            SQLAlchemy: user (role + agent_id), agent, campaign, call, transcription,
                        analysis, review (nota humana), acknowledgement (respuesta del asesor),
+                       coaching_session (sesión de coaching sobre una dimensión),
                        settings.py (RubricConfig con `criteria` JSON + AppSettings)
     schemas/           DTOs Pydantic: auth, agent, campaign, call, analysis, dashboard, config,
                        review, coaching
@@ -113,6 +114,8 @@ backend/
                        dashboard_service.py  → KPIs por campaña, alertas, recomendaciones, percentil
                        review_service.py     → score humano ponderado + acuerdo IA-humano por dimensión
                        coaching_service.py   → a quién escuchar hoy + peticiones de revisión abiertas
+                       coaching_session_service.py → antes/después de una sesión de coaching
+                                               (neto del equipo) + criterios sugeridos
                        call_service.py, agent_service.py, auth_service.py,
                        storage_service.py (local/s3), pdf_service.py
     tasks/
@@ -126,12 +129,12 @@ backend/
   alembic/versions/    0001 esquema, 0002 detección ejecutivo, 0003 rubric_config.criteria,
                        0004 campañas, 0005 roles de usuario, 0006 conversation_metrics,
                        0007 server_default de users.role → 'jefe', 0008 usuarios de solo
-                       lectura, 0009 revisiones humanas, 0010 acuses de recibo, 0011 evidencia y criterios críticos, 0012 usuarios activables, 0013 retención de audios, 0014 motivo de la llamada
+                       lectura, 0009 revisiones humanas, 0010 acuses de recibo, 0011 evidencia y criterios críticos, 0012 usuarios activables, 0013 retención de audios, 0014 motivo de la llamada, 0015 sesiones de coaching
   scripts/seed_data.py admin + jefe + asesores + rúbrica (subcriterios) + settings (umbrales QA) +
                        3 ejecutivos demo + 3 campañas demo (NO imprime contraseñas)
   scripts/seed_demo.py 67 llamadas en 90 días + 22 revisiones humanas + 6 respuestas de
                        asesores. Sin IA y con semilla fija: siempre da lo mismo y cuesta $0
-  tests/               187 tests (conftest = SQLite en memoria, todo lo externo mockeado)
+  tests/               199 tests (conftest = SQLite en memoria, todo lo externo mockeado)
   Dockerfile           multi-stage. CMD = alembic upgrade + seed + uvicorn (lo usa Render)
   .env / .env.example  (.env está gitignorado)
 frontend/
@@ -192,7 +195,7 @@ analítica global; helper `is_manager`); **asesor** solo ve **su propio rendimie
   (5 servicios: postgres, redis, api, worker, frontend)
   → app http://localhost:3000 · API http://localhost:8000/docs · login `admin@callveroqa.com` con la contraseña que imprime el seed (`docker compose logs api`).
   Apagar: `docker compose down`.
-- **Tests backend (187):** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q`
+- **Tests backend (199):** desde `backend/`, `.\.venv\Scripts\python.exe -m pytest -q`
   (el venv ya tiene `requirements.txt`; SQLite en memoria, sin red).
 - **Build frontend:** desde `frontend/`, `npm run build`.
 - **Desplegar:** `git push origin main` (Vercel + Render redepliegan solos).
@@ -231,6 +234,7 @@ analítica global; helper `is_manager`); **asesor** solo ve **su propio rendimie
 - **Retención** (`services/retention_service.py`): caduca el **audio**, nunca la transcripción ni la nota. `retention_audio_days=0` (por defecto) = no caduca. La purga **no borra un archivo que otra llamada vigente comparte** — el seed de demostración reutiliza seis audios entre 67 llamadas y sin esa comprobación dejaba mudas llamadas recientes. Corre sola al listar llamadas, como mucho cada 6 h.
 - **Suprimir datos de una persona es de `require_admin`**, no de manager, y es irreversible: `DELETE /agents/{id}` solo desactiva; `DELETE /agents/{id}/data` borra todo lo suyo. No confundirlos.
 - **Motivos de llamada** (`services/topic_service.py`): el riesgo no es detectarlos, es que se fragmenten («cobro duplicado» / «Cobro duplicado» / «duplicidad de cobro» serían tres barras del panel). Por eso al analizar se le pasa a la IA el catálogo ya usado para que reutilice, y al guardar se normaliza (espacios, mayúsculas, acentos) y se busca un equivalente. **Si añades una fuente nueva de motivos, pásala por `resolve_topic`.**
+- **Coaching medible** (`services/coaching_session_service.py`): la medida **no se guarda**, se calcula al leer (ventana de 30 días a cada lado, mínimo 3 llamadas por lado). El veredicto se juzga sobre el **efecto neto** (cambio del asesor − cambio del resto del equipo en la misma dimensión y semanas); si hay equipo pero aún sin datos suficientes, el veredicto es `pending`, **no** el cambio bruto — solo se usa el bruto cuando nadie más puntúa esa dimensión. Se mide con la nota de la IA por dimensión, no con revisiones humanas. Las sesiones cuelgan de la ficha del ejecutivo, que la supresión conserva: `delete_agent_data` las borra a mano.
 - **Nunca se puede quedar la plataforma sin un administrador activo** (`services/user_service.py`), ni desactivarse uno mismo. La cuenta demo (`is_readonly`) no se administra desde la API.
 - **Evidencia y criterios críticos** (`services/evidence_service.py`, migración 0011): todo lo que el LLM devuelve en `dimension_evidence` / `critical_failures` se **sanea contra la rúbrica** — un crítico que la rúbrica no marca como tal se descarta. Con un crítico incumplido, `global_score = 0` y `uncapped_score` guarda la nota real. **Regla:** calibración (revisión humana, panel de acuerdo) y medias de coaching usan `rubric_score(analysis)`, **nunca** `global_score` a pelo; si no, el 0 del auto-fail se lee como desacuerdo. Para filtrar suspendidas usa `uncapped_score IS NOT NULL`: las columnas JSON guardan `None` como `null` JSON, no como NULL de SQL.
 
@@ -269,6 +273,7 @@ admin/jefe (`require_manager`); `[scoped]` = el asesor solo ve lo suyo.
 - **campaigns:** `GET`/`POST`/`GET /{id}`/`PUT`/`DELETE` + `POST /extract` (PDF) + `POST /assist` (IA).
 - **calls:** `POST` subir + `POST /batch` [manager], `GET` lista [asesor solo las suyas; `?q=` busca en la transcripción y devuelve `match_snippet`, `?critical=true` solo suspendidas], `GET /{id}` [scoped], `GET /{id}/status`, `PUT /{id}/assign` [manager], `POST /{id}/retry` [manager], `GET /{id}/report.pdf` [scoped], `DELETE` [manager].
 - **dashboard:** `GET /topics` [manager] (motivos de llamada: volumen, nota, % rojas y suspendidas), `GET /summary` [manager, +`team_dimension_averages`/`avg_duration_seconds`/`red_call_count`/`conversation_summary`], `GET /campaigns` [manager], `GET /by-campaign` [manager], `GET /alerts` [manager], `GET /top-recommendations` [manager], `GET /agents/{id}` [scoped], `GET /agents/{id}/percentile` [scoped], `GET /agents/{id}/recommendations` [scoped].
+- **coaching:** `GET /coaching/sessions` [scoped: el asesor solo las suyas; `?agent_id=`], `POST` [manager], `GET /coaching/sessions/{id}` [scoped], `PATCH`/`DELETE` [manager], `GET /coaching/suggestions/{agent_id}` [manager]. Además `who-to-listen`, `pending`, `my-pending` y el acuse en `/calls/{id}/acknowledgement`.
 - **users** [manager]: `GET`/`POST /users`, `PATCH /users/{id}` (nombre, rol, activo), `POST /users/{id}/reset-password`. El cambio de la contraseña propia es `POST /auth/change-password` (cualquiera).
 - **agents:** además `DELETE /agents/{id}/data` [**admin**] — supresión total de los datos de esa persona.
 - **config:** `GET`/`PUT /rubric` (PUT [manager]), `GET /settings`, `PUT /settings` [manager, incluye umbrales QA].
@@ -294,7 +299,7 @@ activable); `app_settings` (clave-valor: idioma + **umbrales QA `qa_*`**).
 
 ## 14. Tests
 
-187 tests en `backend/tests/` (pytest, SQLite en memoria, externos mockeados). Cubren
+199 tests en `backend/tests/` (pytest, SQLite en memoria, externos mockeados). Cubren
 auth, **roles y scoping (admin/jefe/asesor)**, agentes, **campañas**, cálculo de score,
 enmascarado, matching difuso, **idempotencia del reintento**, **modo inline**, **umbrales
 QA**, **creación del login del asesor**, la **analítica** (métricas de conversación,

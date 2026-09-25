@@ -543,3 +543,72 @@ export interface TopicStat {
   red_pct: number;
   critical_calls: number;
 }
+
+/* ------------------------- Coaching medible ---------------------------- */
+
+export type CoachingVerdict =
+  | 'improved'
+  | 'worsened'
+  | 'no_change'
+  | 'pending'
+  | 'no_baseline';
+
+/** Una llamada del asesor dentro de la ventana, con su nota en la dimensión. */
+export interface CoachingPoint {
+  call_id: number;
+  date: string;
+  score: number;
+  phase: 'before' | 'after';
+}
+
+/** El antes y el después de una sesión sobre su dimensión. */
+export interface CoachingMeasure {
+  window_days: number;
+  window_start: string;
+  window_end: string;
+  window_closed: boolean;
+  before_count: number;
+  before_avg?: number | null;
+  after_count: number;
+  after_avg?: number | null;
+  delta?: number | null;
+  team_before_avg?: number | null;
+  team_after_avg?: number | null;
+  team_delta?: number | null;
+  /** Mejora del asesor menos la del equipo; sin equipo comparable, la bruta. */
+  net_delta?: number | null;
+  verdict: CoachingVerdict;
+  points: CoachingPoint[];
+}
+
+export interface CoachingSession {
+  id: number;
+  agent_id: number;
+  agent_name?: string | null;
+  dimension_key: string;
+  dimension_name: string;
+  held_on: string;
+  notes?: string | null;
+  call_id?: number | null;
+  coach_name?: string | null;
+  created_at: string;
+  measure: CoachingMeasure;
+}
+
+export interface CoachingSessionInput {
+  agent_id: number;
+  dimension_key: string;
+  held_on?: string;
+  notes?: string;
+  call_id?: number;
+}
+
+/** Una dimensión candidata a coaching, con la distancia a la media del equipo. */
+export interface CoachingSuggestion {
+  dimension_key: string;
+  dimension_name: string;
+  agent_avg: number;
+  team_avg?: number | null;
+  gap?: number | null;
+  calls: number;
+}

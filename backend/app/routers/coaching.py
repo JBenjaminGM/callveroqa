@@ -7,27 +7,40 @@ Endpoints del cierre del ciclo de coaching.
 - `/coaching/pending` — las peticiones abiertas, para el jefe.
 - `/coaching/my-pending` — lo que el asesor tiene por leer.
 - `/coaching/who-to-listen` — qué llamada poner ahora y por qué.
+- `/coaching/sessions` — sesiones de coaching sobre una dimensión, cada una
+  con su antes y después.
 """
 
 from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import get_current_user, require_manager
 from app.models.acknowledgement import Acknowledgement
+from app.models.agent import Agent
 from app.models.call import Call
+from app.models.coaching_session import CoachingSession
 from app.models.user import User
 from app.routers.config import read_qa_thresholds
 from app.schemas.coaching import (
     AcknowledgementIn,
     AcknowledgementOut,
+    CoachingSessionIn,
+    CoachingSessionOut,
+    CoachingSessionUpdate,
+    CoachingSuggestionOut,
     ListenSuggestionOut,
     ManagerReplyIn,
     PendingCallOut,
 )
-from app.services import coaching_service, dashboard_service as ds
+from app.services import (
+    coaching_service,
+    coaching_session_service as css,
+    dashboard_service as ds,
+)
 
 router = APIRouter(tags=["coaching"])
 
@@ -213,3 +226,192 @@ def who_to_listen(
         ListenSuggestionOut(**s)
         for s in coaching_service.who_to_listen(db, start, end, thresholds, limit)
     ]
+
+
+# ------------------------- Sesiones de coaching -------------------------
+
+
+def _session_out(
+    s: CoachingSession, medida: dict, nombres: dict[str, str]
+) -> CoachingSessionOut:
+    return CoachingSessionOut(
+        id=s.id,
+        agent_id=s.agent_id,
+        agent_name=s.agent.name if s.agent else None,
+        dimension_key=s.dimension_key,
+        # Si la dimensión ya no está en la rúbrica se enseña la clave: la sesión
+        # se hizo y su medida sigue valiendo para las llamadas de entonces.
+        dimension_name=nombres.get(s.dimension_key, s.dimension_key),
+        held_on=s.held_on,
+        notes=s.notes,
+        call_id=s.call_id,
+        coach_name=s.coach.name if s.coach else None,
+        created_at=s.created_at,
+        measure=medida,
+    )
+
+
+def _get_session(db: Session, session_id: int) -> CoachingSession:
+    sesion = db.get(CoachingSession, session_id)
+    if sesion is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sesión de coaching no encontrada.",
+        )
+    return sesion
+
+
+def _validate_fields(
+    db: Session,
+    agent_id: int,
+    dimension_key: str | None,
+    held_on: date | None,
+    call_id: int | None = None,
+) -> None:
+    """Comprueba lo que la base de datos no puede comprobar por sí sola."""
+    if dimension_key is not None and dimension_key not in css.dimension_names(db):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Esa dimensión no existe en la rúbrica vigente.",
+        )
+    if held_on is not None and held_on > date.today():
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="La sesión no puede tener fecha futura: se mide una sesión ya hecha.",
+        )
+    if call_id is not None:
+        call = db.get(Call, call_id)
+        if call is None or call.agent_id != agent_id:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="La llamada de referencia tiene que ser de este asesor.",
+            )
+
+
+def _one_out(db: Session, sesion: CoachingSession) -> CoachingSessionOut:
+    medida = css.measure_many(db, [sesion])[sesion.id]
+    return _session_out(sesion, medida, css.dimension_names(db))
+
+
+@router.get("/coaching/sessions", response_model=list[CoachingSessionOut])
+def list_sessions(
+    agent_id: int | None = None,
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Sesiones de coaching, la más reciente primero, cada una con su medida."""
+    if not current_user.is_manager:
+        # El asesor solo ve las suyas, pida lo que pida.
+        if current_user.agent_id is None:
+            return []
+        agent_id = current_user.agent_id
+
+    stmt = select(CoachingSession).order_by(
+        CoachingSession.held_on.desc(), CoachingSession.id.desc()
+    )
+    if agent_id is not None:
+        stmt = stmt.where(CoachingSession.agent_id == agent_id)
+    sesiones = list(db.scalars(stmt.limit(limit)))
+
+    medidas = css.measure_many(db, sesiones)
+    nombres = css.dimension_names(db)
+    return [_session_out(s, medidas[s.id], nombres) for s in sesiones]
+
+
+@router.post(
+    "/coaching/sessions",
+    response_model=CoachingSessionOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_session(
+    payload: CoachingSessionIn,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager),
+):
+    """Registra una sesión de coaching con un asesor sobre una dimensión."""
+    if db.get(Agent, payload.agent_id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ejecutivo no encontrado."
+        )
+    _validate_fields(
+        db, payload.agent_id, payload.dimension_key, payload.held_on, payload.call_id
+    )
+
+    sesion = CoachingSession(
+        agent_id=payload.agent_id,
+        dimension_key=payload.dimension_key,
+        held_on=payload.held_on or date.today(),
+        notes=(payload.notes or "").strip() or None,
+        call_id=payload.call_id,
+        coach_id=current_user.id,
+    )
+    db.add(sesion)
+    db.commit()
+    db.refresh(sesion)
+    return _one_out(db, sesion)
+
+
+@router.get("/coaching/sessions/{session_id}", response_model=CoachingSessionOut)
+def get_session(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Una sesión con su antes y después. El asesor solo puede ver las suyas."""
+    sesion = _get_session(db, session_id)
+    if not current_user.is_manager and current_user.agent_id != sesion.agent_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No autorizado para ver el coaching de otro asesor.",
+        )
+    return _one_out(db, sesion)
+
+
+@router.patch("/coaching/sessions/{session_id}", response_model=CoachingSessionOut)
+def update_session(
+    session_id: int,
+    payload: CoachingSessionUpdate,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_manager),
+):
+    """Corrige la dimensión, la fecha o las notas de una sesión."""
+    sesion = _get_session(db, session_id)
+    _validate_fields(db, sesion.agent_id, payload.dimension_key, payload.held_on)
+    if payload.dimension_key is not None:
+        sesion.dimension_key = payload.dimension_key
+    if payload.held_on is not None:
+        sesion.held_on = payload.held_on
+    if payload.notes is not None:
+        sesion.notes = payload.notes.strip() or None
+    db.commit()
+    db.refresh(sesion)
+    return _one_out(db, sesion)
+
+
+@router.delete(
+    "/coaching/sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+def delete_session(
+    session_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_manager),
+):
+    db.delete(_get_session(db, session_id))
+    db.commit()
+
+
+@router.get(
+    "/coaching/suggestions/{agent_id}", response_model=list[CoachingSuggestionOut]
+)
+def suggestions(
+    agent_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_manager),
+):
+    """Sobre qué dimensiones conviene hacer coaching a este asesor, y por qué."""
+    if db.get(Agent, agent_id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ejecutivo no encontrado."
+        )
+    return [CoachingSuggestionOut(**s) for s in css.suggest_dimensions(db, agent_id)]

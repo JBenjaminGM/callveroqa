@@ -6,6 +6,43 @@ Cambios relevantes. Formato: descripción (commit). Lo más nuevo arriba.
 > [`HISTORIA.md`](HISTORIA.md), movido tal cual: nombra el producto y la identidad
 > visual de entonces porque así era. Es historia, no estado.
 
+## Producto: coaching medible
+
+Hasta aquí el coaching era un acto de fe: el jefe hablaba con el asesor y nadie volvía
+a mirar si sirvió. Es el punto 3.3 de [`COMPETENCIA.md`](COMPETENCIA.md) y lo que piden
+todas las guías de compra: **coaching conectado con los hallazgos y con resultado
+medible**.
+
+- `Sesión de coaching` (**migración 0015**, `coaching_sessions`): con un asesor, sobre
+  **un** criterio de la rúbrica, en una fecha, con notas y la llamada que la motivó.
+  Ir atada a un criterio es lo que permite medirla.
+- `Antes y después`: la nota de ese criterio en los 30 días anteriores frente a los 30
+  posteriores. **Se descuenta lo que se movió el resto del equipo** en esas mismas
+  semanas: si todos suben (cambió la rúbrica, la campaña o el modelo), eso no es mérito
+  de la sesión. Con menos de 3 llamadas a un lado no hay veredicto («faltan llamadas» o
+  «sin línea base»), y el propio día de la sesión no cuenta en ningún lado.
+- `La medida no se guarda`: se calcula al leer, así sigue siendo cierta cuando entran
+  llamadas nuevas o se reasigna una.
+- `Sugerencia de criterio`: al registrar una sesión se proponen los criterios donde el
+  asesor más se separa **del equipo**, no los de nota más baja — si todos puntúan bajo en
+  algo, el problema es de la rúbrica o del producto y un coaching individual no lo arregla.
+- `API`: `GET`/`POST /coaching/sessions`, `GET`/`PATCH`/`DELETE /coaching/sessions/{id}`
+  y `GET /coaching/suggestions/{agent_id}`. Registrar, corregir y borrar es de manager;
+  el asesor ve las suyas (y solo las suyas) en su panel.
+- `Interfaz`: tarjeta **Coaching** en la ficha del ejecutivo (con alta) y en «Mi
+  rendimiento» (lectura). Cada sesión enseña su veredicto, las cuatro cifras (antes,
+  después, equipo, efecto neto), las llamadas de la ventana como puntos y una frase que
+  explica el veredicto con sus números: sin ella, «no funcionó» junto a una nota que
+  subió parece un error.
+- `Supresión de datos`: `DELETE /agents/{id}/data` borra también las sesiones de
+  coaching. Cuelgan de la ficha, que se conserva, así que no caían en cascada.
+- `Demo`: tres sesiones que cuentan tres historias — la de María funciona, la de Lucía
+  no se separa de lo que hizo el equipo y la de Carlos es demasiado reciente para
+  juzgarla. Se fechan desde la última llamada sembrada, no desde hoy.
+- `Arreglo`: `formatDate` enseñaba las fechas sin hora (`call_date`) un día antes en
+  América, porque `Date` las lee como medianoche UTC.
+- `Tests`: 187 → **199**.
+
 ## Producto: por qué llaman los clientes (motivos de llamada)
 
 El resto del panel mide al equipo; esto mide **a qué se enfrenta**. Es el punto 3.2 de

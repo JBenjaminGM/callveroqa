@@ -46,6 +46,7 @@ from app.models.call import Call, CallStatus  # noqa: E402
 from app.models.campaign import Campaign  # noqa: E402
 from app.models.acknowledgement import Acknowledgement  # noqa: E402
 from app.models.coaching_session import CoachingSession  # noqa: E402
+from app.services import coaching_session_service as css  # noqa: E402
 from app.models.review import Review  # noqa: E402
 from app.models.transcription import Transcription  # noqa: E402
 from app.models.user import ROLE_JEFE, User  # noqa: E402
@@ -348,16 +349,22 @@ def sembrar_acuses(db, rng) -> int:
 # Los días se cuentan desde la última llamada sembrada, no desde hoy: si el
 # coaching se siembra semanas después que las llamadas (una base que ya existía),
 # la historia tiene que salir igual.
-# - Lucía, hace 30 días, en lo mismo: su nota se mueve más o menos lo que se
-#   mueve la del equipo, así que la sesión no se distingue de no haberla hecho.
-#   Es el caso que vende la función: sin medir, se daría por buena.
+# - Lucía, hace unos 30 días, en lo mismo: su nota se mueve más o menos lo que
+#   se mueve la del equipo, así que la sesión no se distingue de no haberla
+#   hecho. Es el caso que vende la función: sin medir, se daría por buena.
 # - Carlos, hace 5 días: todavía no hay llamadas suficientes para juzgarla, y
 #   la plataforma lo dice en vez de inventar un resultado.
+# El cuarto campo es el veredicto que esa sesión tiene que enseñar (o None si
+# vale cualquiera). Las llamadas se reparten al azar y con fechas relativas, así
+# que el resultado exacto cambia de una base a otra; para que la demo muestre
+# siempre los tres desenlaces, la fecha de la sesión se mueve unos días hasta
+# dar con uno que lo cumpla. Es un dato de demostración, no una medida real.
 SESIONES_DE_COACHING = [
     (
         "María González",
         "compliance",
         45,
+        ("improved",),
         "Repasamos el aviso de grabación y cómo decir la TEA sin que suene a "
         "letra pequeña. Acordamos leerla siempre antes del cierre.",
     ),
@@ -365,6 +372,7 @@ SESIONES_DE_COACHING = [
         "Lucía Fernández",
         "compliance",
         30,
+        ("no_change", "worsened"),
         "Exclusiones y carencia de 60 días en seguros: dónde encajarlas en la "
         "conversación. Se comprometió a usar la ficha de la campaña.",
     ),
@@ -372,6 +380,7 @@ SESIONES_DE_COACHING = [
         "Carlos Ruiz",
         "assertiveness",
         5,
+        None,
         "Escuchamos juntos una llamada donde habló casi un minuto seguido. "
         "Probar a cortar cada treinta segundos con una pregunta.",
     ),
@@ -396,12 +405,28 @@ def sembrar_coaching(db) -> int:
     if ultima is None:
         return 0
 
+    # Todas las llamadas de la ventana posible, cargadas una vez para probar fechas.
+    filas = db.execute(
+        select(Call, Analysis).join(Analysis, Analysis.call_id == Call.id)
+    ).all()
+
     creadas = 0
-    for nombre, dimension, dias, notas in SESIONES_DE_COACHING:
+    for nombre, dimension, dias, esperado, notas in SESIONES_DE_COACHING:
         agente = ejecutivos.get(nombre)
         if agente is None:
             continue
         dia = ultima - timedelta(days=dias)
+        if esperado:
+            # Del día previsto hacia fuera: 0, -1, +1, -2, +2… hasta dos semanas.
+            for desvio in sorted(range(-14, 15), key=abs):
+                prueba = CoachingSession(
+                    agent_id=agente.id,
+                    dimension_key=dimension,
+                    held_on=dia + timedelta(days=desvio),
+                )
+                if css.measure(prueba, filas)["verdict"] in esperado:
+                    dia = prueba.held_on
+                    break
         previas = db.execute(
             select(Call, Analysis)
             .join(Analysis, Analysis.call_id == Call.id)
